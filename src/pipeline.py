@@ -1,3 +1,4 @@
+import numpy as np
 import sys
 sys.path.append('/home/fberendse/git/galvanize/work/capstone_1/src/')
 from imputationtypes import ImputationTypes as it
@@ -15,33 +16,38 @@ def grad_make_pcts(df, class_sum, classes, dropna=False,
     for categories without students if alpha is nonzero.
     '''
     l2cols = ['gr2mort', 'grasiat', 'grbkaat', 'grhispt', 'grwhitt']
+    l2baseline = 'grwhitt'
+    l2cols.remove(l2baseline)
+    l2cols.insert(0, l2baseline)
 
     # calculate the count over all races/ethnicities
     n_all_classes = df.loc[:, class_sum].sum(axis=1)
 
-    pct_cols = []
+    new_cols = []
     for cl in classes:
         # calculate the class count over all races
         n_class = df.loc[:, cl].sum(axis=1)
+        pct_baseline = (str(cl)+'_pct', l2baseline)
         for col in l2cols:
             pct_col = (str(cl)+'_pct', col)
-            pct_cols.append(pct_col)
+            new_cols.append(pct_col)
             df[pct_col] = round(
                     (df[(cl, col)]+alpha*n_class)*100 /
                     (df[(class_sum, col)]+alpha*n_all_classes),
                     0)
+            if col != l2baseline:
+                rat_col = (str(cl)+'_rat', col)
+                new_cols.append(rat_col)
+                df[rat_col] = round(df[pct_col] / df[pct_baseline], 2)
+                # replace values where df[pct_baseline] == 0
             if replace:
                 df.drop((cl, col), axis=1, inplace=True)
     if dropna:
-        df.dropna(axis=0, how='any', subset=pct_cols, inplace=True)
+        df.dropna(axis=0, how='any', subset=new_cols, inplace=True)
     if replace: 
         for col in l2cols:
             df.drop((class_sum, col), axis=1, inplace=True)
     return
-
-
-def grad_make_ratios():
-    pass
 
 
 def grad_ps_make_pcts(df, cat_partials, cat_totals, dropna=False,
@@ -52,15 +58,27 @@ def grad_ps_make_pcts(df, cat_partials, cat_totals, dropna=False,
     without students if alpha is nonzero.
     '''
 
+    baseline = 'nrcmbac'
+    idx = cat_partials.index(baseline)
+    val = cat_partials.pop(idx)
+    cat_partials.insert(0, val)
+    val = cat_totals.pop(idx)
+    cat_totals.insert(0, val)
+
     sum_partials = df.loc[:, partials].sum(axis=1)
     sum_totals = df.loc[:, totals].sum(axis=1)
+    new_cols = []
     for p, t in zip(cat_partials, cat_totals):
+        new_cols.append(p+'_pct')
         df[p+'_pct'] = (df[p]+alpha*sum_partials)*100/(df[t]+alpha*sum_totals)
         if replace:
             df.drop(p, axis=1, inplace=True)
+        if p != baseline:
+            new_cols.append(p+'_rat')
+            df[p+'_rat'] = round(df[p+'_pct'] / df[baseline+'_pct'], 2)
+            # replace values where df[p+'_pct'] == 0
     if dropna:
-        pct_cols = [p+'_pct' for p in cat_partials]
-        df.dropna(axis=0, how='any', subset=pct_cols, inplace=True)
+        df.dropna(axis=0, how='any', subset=new_cols, inplace=True)
     return
 
 
@@ -185,59 +203,58 @@ if __name__ == "__main__":
     totals = ['enrlt', 'admssn', 'applcn']
     adm.make_pct_columns(partials, totals, replace=True, dropna=False)
 
-    # Comment this block out for EDA
-    standardize(adm, ['satvr25', 'acten25'], avg_col='en25')
-    standardize(adm, ['satvr75', 'acten75'], avg_col='en75')
-    standardize(adm, ['satmt25', 'actmt25'], avg_col='mt25')
-    standardize(adm, ['satmt75', 'actmt75'], avg_col='mt75')
-    drop_list = ['satvr25', 'satvr25_scl', 'satvr75', 'satvr75_scl',
-                 'satmt25', 'satmt25_scl', 'satmt75', 'satmt75_scl',
-                 'acten25', 'acten25_scl', 'acten75', 'acten75_scl',
-                 'actmt25', 'actmt25_scl', 'actmt75', 'actmt75_scl']
-    adm.df.drop(drop_list, axis=1, inplace=True)
+    # # Comment this block out for EDA
+    # standardize(adm, ['satvr25', 'acten25'], avg_col='en25')
+    # standardize(adm, ['satvr75', 'acten75'], avg_col='en75')
+    # standardize(adm, ['satmt25', 'actmt25'], avg_col='mt25')
+    # standardize(adm, ['satmt75', 'actmt75'], avg_col='mt75')
+    # drop_list = ['satvr25', 'satvr25_scl', 'satvr75', 'satvr75_scl',
+    #              'satmt25', 'satmt25_scl', 'satmt75', 'satmt75_scl',
+    #              'acten25', 'acten25_scl', 'acten75', 'acten75_scl',
+    #              'actmt25', 'actmt25_scl', 'actmt75', 'actmt75_scl']
+    # adm.df.drop(drop_list, axis=1, inplace=True)
 
     gr = tc.meta['gr2017']['table']
     chrtstats = ['cstrevex', 'cstcball']
     for cs in chrtstats:
         gr.df.drop((cs, 'cohort'), axis=1, inplace=True)
 
-    # Calculate percentages for the graduation rate table
+    # Calculate percentages and ratios for the graduation rate table
     gr.df.fillna(0, inplace=True)
     _ = chrtstats.pop(0)
     grad_make_pcts(gr.df, 'cstrevex', chrtstats, dropna=False,
                    replace=True, alpha=0.01)
-    # grad_make_ratios 
     gr.df.sort_index(level=0, axis=1, inplace=True)
 
-    # Make percentages for the PELL/SSL table
+    # Calculate percentages and ratios for the PELL/SSL table
     grp = tc.meta['gr2017_pell_ssl']['table']
     partials = ['pgcmbac', 'sscmbac', 'nrcmbac']
     totals = ['pgadjct', 'ssadjct', 'nradjct']
     grad_ps_make_pcts(grp.df, partials, totals, dropna=False,
                       replace=True, alpha=0.01)
-    # grad_ps_make_pcts
+    # grad_ps_make_ratios(grp.df, )
     grp.df.drop('psgrtype', axis=1, inplace=True)
 
-    # Calculate percentages for the student financial aid table
-    sfa = tc.meta['sfa2017']['table']
-    mask = sfa.df['grntn2'].isnull()
-    sfa.df = sfa.df[~mask]
-    sfa.df.fillna(0, inplace=True)
-    partials = ['grnton2', 'grntwf2', 'grntof2']
-    totals = ['grntn2', 'grntn2', 'grntn2']
-    sfa.make_pct_columns(partials, totals, replace=True, dropna=False)
-    print(tc.get_row_counts())
+    # # Calculate percentages for the student financial aid table
+    # sfa = tc.meta['sfa2017']['table']
+    # mask = sfa.df['grntn2'].isnull()
+    # sfa.df = sfa.df[~mask]
+    # sfa.df.fillna(0, inplace=True)
+    # partials = ['grnton2', 'grntwf2', 'grntof2']
+    # totals = ['grntn2', 'grntn2', 'grntn2']
+    # sfa.make_pct_columns(partials, totals, replace=True, dropna=False)
+    # print(tc.get_row_counts())
 
-    tc.merge_all()
-    mdf = tc.merged_table.df
-    mdf.dropna(how='any', inplace=True)
-    print(mdf.info(max_cols=150))
+    # tc.merge_all()
+    # mdf = tc.merged_table.df
+    # mdf.dropna(how='any', inplace=True)
+    # print(mdf.info(max_cols=150))
 
-    new_col_names = []
-    for c in mdf.columns:
-        new_name = c[0]+'_'+c[1] if type(c) is tuple else c
-        new_col_names.append(new_name)
-    mdf.columns = new_col_names
-    print("writing to file")
-    tc.merged_table.df.set_index('unitid')
-    tc.merged_table.write_csv('data/ipeds_2017_model.csv')
+    # new_col_names = []
+    # for c in mdf.columns:
+    #     new_name = c[0]+'_'+c[1] if type(c) is tuple else c
+    #     new_col_names.append(new_name)
+    # mdf.columns = new_col_names
+    # print("writing to file")
+    # tc.merged_table.df.set_index('unitid')
+    # tc.merged_table.write_csv('data/ipeds_2017_cats_eda.csv')
