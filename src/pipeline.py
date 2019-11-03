@@ -40,6 +40,10 @@ def grad_make_pcts(df, class_sum, classes, dropna=False,
     return
 
 
+def grad_make_ratios():
+    pass
+
+
 def grad_ps_make_pcts(df, cat_partials, cat_totals, dropna=False,
                       replace=False, alpha=0):
     '''
@@ -58,6 +62,10 @@ def grad_ps_make_pcts(df, cat_partials, cat_totals, dropna=False,
         pct_cols = [p+'_pct' for p in cat_partials]
         df.dropna(axis=0, how='any', subset=pct_cols, inplace=True)
     return
+
+
+def grad_ps_make_ratios():
+    pass
 
 
 def calc_percentile(table, cols, avg_col=None):
@@ -105,9 +113,12 @@ if __name__ == "__main__":
     hd_keep = ['unitid', 'instnm', 'city', 'stabbr', 'iclevel', 'control',
                'hloffer', 'hbcu', 'tribal', 'locale', 'instsize', 'longitud',
                'latitude', 'landgrnt']
+    hd_cat_cols = ['iclevel', 'control', 'hloffer', 'hbcu', 'tribal', 'locale',
+                   'instsize', 'landgrnt']
     tc.update_meta('hd2017',
                    filepath='data/hd2017.csv',
                    keep_columns=hd_keep,
+                   category_columns=hd_cat_cols,
                    exclude_imputations=exclude_list)
 
     # ADM2017 table
@@ -163,6 +174,8 @@ if __name__ == "__main__":
     tc.map_values_all()
     tc.filter_all()
     print(tc.get_row_counts())
+    tc.encode_columns_all()
+    print(tc.get_row_counts())
     tc.make_multicols_all()
     print(tc.get_row_counts())
 
@@ -171,12 +184,12 @@ if __name__ == "__main__":
     partials = ['enrlft', 'enrlt', 'admssn']
     totals = ['enrlt', 'admssn', 'applcn']
     adm.make_pct_columns(partials, totals, replace=True, dropna=False)
+
+    # Comment this block out for EDA
     standardize(adm, ['satvr25', 'acten25'], avg_col='en25')
     standardize(adm, ['satvr75', 'acten75'], avg_col='en75')
     standardize(adm, ['satmt25', 'actmt25'], avg_col='mt25')
     standardize(adm, ['satmt75', 'actmt75'], avg_col='mt75')
-
-    # # drop these for modeling; leave them in for eda
     drop_list = ['satvr25', 'satvr25_scl', 'satvr75', 'satvr75_scl',
                  'satmt25', 'satmt25_scl', 'satmt75', 'satmt75_scl',
                  'acten25', 'acten25_scl', 'acten75', 'acten75_scl',
@@ -184,15 +197,16 @@ if __name__ == "__main__":
     adm.df.drop(drop_list, axis=1, inplace=True)
 
     gr = tc.meta['gr2017']['table']
-    # We filtered by cohort=='cobach' so drop the cohort column
     chrtstats = ['cstrevex', 'cstcball']
     for cs in chrtstats:
         gr.df.drop((cs, 'cohort'), axis=1, inplace=True)
+
     # Calculate percentages for the graduation rate table
     gr.df.fillna(0, inplace=True)
     _ = chrtstats.pop(0)
     grad_make_pcts(gr.df, 'cstrevex', chrtstats, dropna=False,
                    replace=True, alpha=0.01)
+    # grad_make_ratios 
     gr.df.sort_index(level=0, axis=1, inplace=True)
 
     # Make percentages for the PELL/SSL table
@@ -201,9 +215,10 @@ if __name__ == "__main__":
     totals = ['pgadjct', 'ssadjct', 'nradjct']
     grad_ps_make_pcts(grp.df, partials, totals, dropna=False,
                       replace=True, alpha=0.01)
+    # grad_ps_make_pcts
     grp.df.drop('psgrtype', axis=1, inplace=True)
 
-    # # Calculate percentages for the student financial aid table
+    # Calculate percentages for the student financial aid table
     sfa = tc.meta['sfa2017']['table']
     mask = sfa.df['grntn2'].isnull()
     sfa.df = sfa.df[~mask]
