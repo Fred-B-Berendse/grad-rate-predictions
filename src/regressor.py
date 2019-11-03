@@ -1,0 +1,53 @@
+import numpy as np
+from plotting import make_histograms
+
+
+class Regressor(object):
+    '''
+    A helper class for regression-like classes
+    '''
+
+    def _fit(self, Y):
+        self.model.fit(self.dataset.X_train, Y)
+
+    def fit_train(self):
+        self._fit(self.dataset.Y_train)
+
+    def predict(self):
+        self.train_predict = self.model.predict(self.dataset.X_train)
+        self.train_residuals = self.dataset.Y_train - self.train_predict
+        self.test_predict = self.model.predict(self.dataset.X_test)
+        self.test_residuals = self.dataset.Y_test - self.test_predict
+
+    def _rss(self):
+        rss_train = np.sum(np.square(self.train_residuals))
+        rss_test = np.sum(np.square(self.test_residuals))
+        return rss_train, rss_test
+
+    def _tss(self):
+        mean_train = np.mean(self.dataset.Y_train, axis=0)
+        mean_test = np.mean(self.dataset.Y_mean, axis=0)
+        tss_train = np.sum(np.square(self.dataset.Y_train-mean_train))
+        tss_test = np.sum(np.square(self.dataset.Y_test-mean_test))
+        return tss_train, tss_test
+
+    def r_squared(self):
+        rss_tr, rss_te = self._rss()
+        tss_tr, tss_te = self._tss()
+        rsq_train = 1-rss_tr/tss_tr
+        rsq_test = 1-rss_te/tss_te
+        return rsq_train, rsq_test
+
+    def rmse(self):
+        rss_tr, rss_te = self._rss()
+        return np.sqrt(rss_tr/len(rss_tr)), np.sqrt(rss_te/len(rss_te))
+
+    def plot_residuals(self):
+        '''
+        graphs residuals vs predicted value for given data set
+        ('test' or 'train')
+        '''
+        x_labels = ['Residuals: ' + l for l in self.dataset.target_labels]
+        fig, ax = make_histograms(self.dataset.test_residuals,
+                                  x_labels=x_labels, center=0,
+                                  colors=self.dataset.target_colors)
