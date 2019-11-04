@@ -113,8 +113,8 @@ class Dataset(object):
             raise DropError('Cannot drop features when scaled.')
         if type(feature_labels) == str:
             feature_labels = [feature_labels]
-        self.n_features -= 1
         mask = ~np.isin(self.feature_labels, feature_labels)
+        self.n_features = mask.sum()
         sl = self.X_train[:, mask]
         self.X_train = sl.reshape(self.n_train, self.n_features)
         if self.X_test is not None:
@@ -129,8 +129,8 @@ class Dataset(object):
             raise DropError('Cannot drop targets when scaled.')
         if type(target_labels) == str:
             target_labels = [target_labels]
-        self.n_targets -= 1
         mask = ~np.isin(self.target_labels, target_labels)
+        self.n_targets = mask.sum()
         sl = self.Y_train[:, mask]
         self.Y_train = sl.reshape(self.n_train, self.n_targets)
         if self.Y_test is not None:
@@ -182,18 +182,10 @@ class Dataset(object):
 
     def make_feature_histograms(self, features, x_labels=None, colors=None,
                                 center=None):
-        indexes = [np.where(ds.feature_labels == f) for f in features]
+        indexes = [np.where(self.feature_labels == f) for f in features]
         indexes = np.array(indexes).flatten()
         make_histograms(self.X_train[:, indexes], x_labels=x_labels,
                         colors=colors, center=center)
-
-
-def log10_sm(x):
-    return np.log10(x + 1)
-
-
-def log10u_sm(x):
-    return np.log10(101-x)
 
 
 if __name__ == "__main__":
@@ -219,30 +211,6 @@ if __name__ == "__main__":
     ds = Dataset.from_df(mdf, feat_cols, target_cols, test_size=0.25,
                          random_state=10)
 
-    tr_feature_dict = {'enrlt_pct': ('log_enrlt_pct', log10_sm),
-                       'grntwf2_pct': ('log_grntwf2_pct', log10_sm),
-                       'grntof2_pct': ('log_grntof2_pct', log10_sm),
-                       'uagrntp': ('logu_uagrntp', log10u_sm),
-                       'enrlft_pct': ('logu_enrlft_pct', log10u_sm)}
-
-    ds.transform_features(tr_feature_dict, drop_old=False)
-
-    features = ['enrlt_pct', 'log_enrlt_pct',
-                'enrlft_pct', 'logu_enrlft_pct',
-                'uagrntp', 'logu_uagrntp',
-                'grntwf2_pct', 'log_grntwf2_pct',
-                'grntof2_pct', 'log_grntof2_pct']
-    x_labels = ['Percent Enrolled', 'Log Percent Enrolled',
-                'Percent Full Time', 'Log (100 - Percent Full Time)',
-                'Percent Awarded Aid (any)',
-                'Log (100 - Percent Awarded Aid (any))',
-                'Percent With Family: 2016-17',
-                'Log Percent With Family: 2016-17',
-                'Percent Off Campus: 2016-17',
-                'Log Percent Off Campus: 2016-17']
-
-    # indexes = np.array([np.where(ds.feature_labels == f) for f in features])
-    # indexes = indexes.flatten()
-    # make_histograms(ds.X_train[:, indexes], x_labels=x_labels)
-    ds.make_feature_histograms(features, x_labels=x_labels)
-    plt.show()
+    features = ['enrlt_pct', 'grntwf2_pct', 'grntof2_pct', 'uagrntp',
+                'enrlft_pct']
+    ds.drop_features(features)
