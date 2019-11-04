@@ -23,7 +23,7 @@ class PCAModel(object):
         self.components = self.model.components_
         self.explained_variance = self.model.explained_variance_
 
-    def plot_embedding(self, n_obs=None):
+    def plot_embedding(self, n_obs=None, n_digits=0):
         '''
         plots an embedding of the targets onto the first two principal
         components
@@ -32,10 +32,10 @@ class PCAModel(object):
                 otherwise only n_obs random observations are graphed
         '''
         for i, l in enumerate(self.dataset.target_labels):
-            y_rounded = self.dataset.Y_train[:, i].round(0)
+            y_rounded = self.dataset.Y_train[:, i].round(n_digits)
             fig, ax = make_embedding_graph(self.dataset.X_train, y_rounded,
                                            l, n=100)
-            ax.set_title(f'Principal Component Embedding: {l}')
+            ax.set_title(f'PCA: {l}')
             ax.set_xlabel('First principal component')
             ax.set_ylabel('Second principal component')
 
@@ -55,7 +55,7 @@ class PCAModel(object):
 
 if __name__ == "__main__":
 
-    mdf = pd.read_csv('data/ipeds_2017_eda.csv')
+    mdf = pd.read_csv('data/ipeds_2017_cats_eda.csv')
     mdf.drop('Unnamed: 0', axis=1, inplace=True)
 
     # Make color dictionaries
@@ -129,11 +129,16 @@ if __name__ == "__main__":
     ax.set_title("Institution-wide Completion Percentage by Race/Ethnicity")
     plt.show()
 
-    # PCA plots
-    feat_cols = ['iclevel', 'control', 'hloffer', 'hbcu', 'tribal', 'locale',
-                 'instsize', 'longitud', 'latitude', 'admssn_pct', 'enrlt_pct',
-                 'enrlft_pct', 'en25', 'en75', 'mt25', 'mt75', 'uagrntp',
-                 'upgrntp', 'npgrn2', 'grnton2_pct']
+    # PCA plots: graduation percentages
+    feat_cols = ['iclevel_2', 'iclevel_3', 'iclevel_-3', 'control_1', 'control_2',
+                 'control_-3', 'hloffer_3', 'hloffer_9', 'hloffer_5', 'hloffer_7',
+                 'hloffer_4', 'hloffer_1', 'hloffer_8', 'hloffer_-3', 'hloffer_6',
+                 'hbcu_1', 'tribal_1', 'locale_11', 'locale_13', 'locale_12',
+                 'locale_32', 'locale_41', 'locale_33', 'locale_22', 'locale_23',
+                 'locale_31', 'locale_42', 'locale_43', 'locale_-3', 'instsize_2',
+                 'instsize_3', 'instsize_4', 'instsize_-2', 'instsize_5', 'instsize_-1',
+                 'landgrnt_1', 'longitud', 'latitude', 'admssn_pct', 'enrlt_pct',
+                 'enrlft_pct', 'en25', 'uagrntp', 'upgrntp', 'npgrn2', 'grnton2_pct']
 
     target_cols = ['cstcball_pct_grwhitt', 'cstcball_pct_grbkaat',
                    'cstcball_pct_grhispt', 'cstcball_pct_grasiat',
@@ -149,16 +154,42 @@ if __name__ == "__main__":
     race_colors = get_colors(labels[:-3], race_color_dict)
     ps_colors = get_colors(labels[-3:], ssl_color_dict)
     ds.target_colors = np.append(race_colors, ps_colors, axis=0)
-    pca = PCAModel(ds)
-    pca.plot_embedding(n_obs=100)
+    pca_pct = PCAModel(ds)
+    pca_pct.plot_embedding(n_obs=100)
     plt.show()
 
-    idx = np.argsort(abs(pca.components[0]))[:-6:-1]
-    print("Heavy features on first PCA axis:")
-    _ = [print(f"{feat_cols[i]}: {pca.components[0, i]}") for i in idx]
+    idx = np.argsort(abs(pca_pct.components[0]))[:-6:-1]
+    print("Rates: Heavy features on first PCA axis:")
+    _ = [print(f"{feat_cols[i]}: {pca_pct.components[0, i]}") for i in idx]
 
     # Variance (scree) plot
-    pca.plot_variance()
+    pca_pct.plot_variance()
+    plt.show()
+
+    # PCA plots: graduation ratios
+    target_cols = ['cstcball_rat_grbkaat', 'cstcball_rat_grhispt',
+                   'cstcball_rat_grasiat', 'cstcball_rat_gr2mort',
+                   'pgcmbac_rat', 'sscmbac_rat']
+
+    ds = Dataset.from_df(mdf, feat_cols, target_cols, test_size=0,
+                         random_state=10)
+
+    labels = ['Black', 'Hispanic', 'Asian', '2+ Races', 'Pell Grant',
+              'SSL']
+    ds.target_labels = [l + ' to Baseline Graduation Ratio' for l in labels]
+    race_colors = get_colors(labels[:-2], race_color_dict)
+    ps_colors = get_colors(labels[-2:], ssl_color_dict)
+    ds.target_colors = np.append(race_colors, ps_colors, axis=0)
+    pca_rat = PCAModel(ds)
+    pca_rat.plot_embedding(n_obs=100, n_digits=2)
+    plt.show()
+
+    idx = np.argsort(abs(pca_rat.components[0]))[:-6:-1]
+    print("Ratios: Heavy features on first PCA axis:")
+    _ = [print(f"{feat_cols[i]}: {pca_rat.components[0, i]}") for i in idx]
+
+    # Variance (scree) plot
+    pca_rat.plot_variance()
     plt.show()
 
     # Correlation Graphs
