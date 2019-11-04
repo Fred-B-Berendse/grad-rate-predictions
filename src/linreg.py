@@ -42,14 +42,17 @@ class LinearRegressor(Regressor):
         self.test_residuals = None
 
     def calc_vifs(self):
-        pass
-
-    def plot_vifs(self, features_list=None):
-        '''
-        plots the vifs for all features as a bar graph
-        if features_list is None, all features are graphed
-        '''
-        pass
+        Xarr = self.dataset.X_train
+        vifs = np.array([], dtype=float)
+        for i in range(Xarr.shape[1]):
+            X = Xarr.copy()
+            y = X[:, i]
+            X = np.delete(X, i, axis=1)
+            reg = LinearRegression(n_jobs=-1).fit(X, y)
+            r_sq = reg.score(X, y)
+            vif = 1.0/(1.0-r_sq) if r_sq < 1.0 else np.inf
+            vifs = np.append(vifs, vif)
+        return vifs
 
     def _calc_qq(self, target):
         pass
@@ -77,13 +80,37 @@ class LinearRegressor(Regressor):
 
 if __name__ == "__main__":
 
-    mdf = pd.read_csv('data/ipeds_2017_model.csv')
+    mdf = pd.read_csv('data/ipeds_2017_cats_eda.csv')
     mdf.drop(['Unnamed: 0', 'applcn'], axis=1, inplace=True)
 
-    feat_cols = np.array(['iclevel', 'tribal', 'longitud', 'latitude',
-                          'enrlft_pct', 'enrlt_pct', 'admssn_pct', 'en25',
-                          'mt25', 'en75', 'mt75', 'uagrntp', 'upgrntp',
-                          'grnton2_pct', 'grntwf2_pct', 'grntof2_pct'])
+    # Original features
+    # feat_cols = ['iclevel_2to4', 'iclevel_0to2', 'iclevel_na',
+    #              'control_public', 'control_privnp', 'control_na',
+    #              'hloffer_assoc', 'hloffer_doct', 'hloffer_bach',
+    #              'hloffer_mast', 'hloffer_2to4yr', 'hloffer_0to1yr',
+    #              'hloffer_postmc', 'hloffer_na', 'hloffer_postbc',
+    #              'hbcu_yes', 'tribal_yes', 'locale_ctylrg', 'locale_ctysml',
+    #              'locale_ctymid', 'locale_twndst', 'locale_rurfrg',
+    #              'locale_twnrem', 'locale_submid', 'locale_subsml',
+    #              'locale_twnfrg', 'locale_rurdst', 'locale_rurrem',
+    #              'locale_na', 'instsize_1to5k', 'instsize_5to10k',
+    #              'instsize_10to20k', 'instsize_na', 'instsize_gt20k',
+    #              'instsize_norpt', 'landgrnt_yes', 'longitud', 'latitude',
+    #              'admssn_pct', 'enrlt_pct', 'enrlft_pct', 'en25', 'en75',
+    #              'mt25', 'mt75', 'uagrntp', 'upgrntp', 'npgrn2', 'grnton2_pct',
+    #              'grntof2_pct', 'grntwf2_pct']
+
+    # Surviving features after VIF elimination
+    feat_cols = ['control_privnp', 'hloffer_postmc', 'hloffer_postbc',
+                 'hbcu_yes', 'locale_ctylrg', 'locale_ctysml',
+                 'locale_ctymid', 'locale_twndst', 'locale_rurfrg',
+                 'locale_twnrem', 'locale_submid', 'locale_subsml',
+                 'locale_twnfrg', 'locale_rurdst', 'locale_rurrem',
+                 'instsize_1to5k', 'instsize_5to10k', 'instsize_10to20k',
+                 'instsize_gt20k', 'longitud', 'latitude',
+                 'admssn_pct', 'enrlt_pct', 'enrlft_pct',
+                 'en25', 'uagrntp', 'upgrntp',
+                 'npgrn2', 'grntof2_pct', 'grntwf2_pct']
 
     target_cols = np.array(['cstcball_pct_gr2mort', 'cstcball_pct_grasiat',
                             'cstcball_pct_grbkaat', 'cstcball_pct_grhispt',
@@ -92,20 +119,28 @@ if __name__ == "__main__":
 
     ds = Dataset.from_df(mdf, feat_cols, target_cols, test_size=0.25,
                          random_state=10)
-
-    # transform some features
-    tr_feature_dict = {'enrlt_pct': ('log_enrlt_pct', log10_sm),
-                       'grntwf2_pct': ('log_grntwf2_pct', log10_sm),
-                       'grntof2_pct': ('log_grntof2_pct', log10_sm),
-                       'uagrntp': ('logu_uagrntp', log10u_sm),
-                       'enrlft_pct': ('logu_enrlft_pct', log10u_sm)}
-
-    ds.transform_features(tr_feature_dict)
     ds.scale_features_targets()
 
+    lr = LinearRegressor(LinearRegression(), ds)
+    lr.dataset = ds
+
+    vifs = lr.calc_vifs()
+    print(f"VIF: {vifs}")
+
+    # Make histograms of the features
+    lr.make
+
+    # transform some features
+    # tr_feature_dict = {'enrlt_pct': ('log_enrlt_pct', log10_sm),
+    #                    'grntwf2_pct': ('log_grntwf2_pct', log10_sm),
+    #                    'grntof2_pct': ('log_grntof2_pct', log10_sm),
+    #                    'uagrntp': ('logu_uagrntp', log10u_sm),
+    #                    'enrlft_pct': ('logu_enrlft_pct', log10u_sm)}
+
+    # ds.transform_features(tr_feature_dict)
+    # ds.scale_features_targets()
+
     # Variance Inflation Factors
-
-
     # # removed through recursive VIF:
     # #       'iclevel', 'tribal', 'grnton2_pct', 'mt25', 'en75', 'mt75',
 
