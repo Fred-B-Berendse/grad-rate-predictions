@@ -17,7 +17,7 @@ def make_histograms(X, bins=20, x_labels=None, colors=None, center=None):
         colors = cm.tab10(np.linspace(0, 1, nplots))
     fig, ax = plt.subplots(nplotrows, 2, figsize=(12, 4*nplotrows))
     for i in range(nplots):
-        axi = ax[i//2, i % 2]
+        axi = ax[i] if nplots <= 2 else ax[i//2, i % 2]
         data = X[:, i]
         axi.hist(data, bins=bins, color=colors[i])
         if x_labels is not None:
