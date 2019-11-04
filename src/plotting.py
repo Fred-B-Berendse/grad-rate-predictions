@@ -135,7 +135,7 @@ def make_rank_plot(df, x_cols, y_avg, titles):
     fig, ax = plt.subplots(1, 2, figsize=(16, 6))
     for i, (x, title) in enumerate(zip(x_cols, titles)):
         df.plot(x, y_avg, kind='scatter', ax=ax[i], label='Avg Both Tests')
-        df.plot(x, x+'_pctl', kind='scatter', ax=ax[i], label='One Test',
+        df.plot(x, x+'_scl', kind='scatter', ax=ax[i], label='One Test',
                 color='red')
         ax[i].legend(loc='best')
         ax[i].set_xlabel('Benchmark Score')
@@ -183,15 +183,25 @@ def make_embedding_graph(X, y, topic, n=-1):
                    + topic)
     return fig, ax
 
+def scale(y, n_sigma):
+    '''
+    Scales y values to range between 0 and 1. 
+    Values at the median scale to 0.5 
+    Clips values n_sigma standard deviations above and below the median. 
+    '''
+    yscl = (y - np.median(y))/(n_sigma*y.std()) + 0.5
+    return np.clip(yscl, 0, 1)
 
 def plot_embedding(ax, X, y, title=None):
 
     x_min, x_max = np.min(X, 0), np.max(X, 0)
     X = (X - x_min) / (x_max - x_min)
     ax.patch.set_visible(False)
+    ysc = scale(y, 1.5)
     for i in range(X.shape[0]):
+        
         plt.text(X[i, 0], X[i, 1], str(y[i]),
-                 color=cm.coolwarm(y[i] / max(y)),
+                 color=cm.coolwarm(ysc[i]),
                  fontdict={'weight': 'bold', 'size': 12})
 
     ax.set_xticks([]),
