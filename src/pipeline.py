@@ -46,7 +46,7 @@ def grad_make_pcts(df, class_sum, classes, dropna=False,
                 df.drop((cl, col), axis=1, inplace=True)
     if dropna:
         df.dropna(axis=0, how='any', subset=new_cols, inplace=True)
-    if replace: 
+    if replace:
         for col in l2cols:
             df.drop((class_sum, col), axis=1, inplace=True)
     return
@@ -75,12 +75,13 @@ def grad_ps_make_pcts(df, cat_partials, cat_totals, dropna=False,
         df[p+'_pct'] = (df[p]+alpha*sum_partials)*100/(df[t]+alpha*sum_totals)
         if replace:
             df.drop(p, axis=1, inplace=True)
-        if p != baseline:
+        if p == baseline:
+            no_baseline_mask = df[baseline+'_pct'] == 0
+        else:
             new_cols.append(p+'_rat')
             df[p+'_rat'] = round(df[p+'_pct'] / df[baseline+'_pct'], 2)
             df.loc[no_baseline_mask, p+'_rat'] = np.nan
-        else:
-            no_baseline_mask = df[baseline+'_pct'] == 0
+
     if dropna:
         df.dropna(axis=0, how='any', subset=new_cols, inplace=True)
     return
@@ -135,11 +136,20 @@ if __name__ == "__main__":
     hd_keep = ['unitid', 'instnm', 'city', 'stabbr', 'iclevel', 'control',
                'hloffer', 'hbcu', 'tribal', 'locale', 'instsize', 'longitud',
                'latitude', 'landgrnt']
+    hd_map_values = {'iclevel': ct.hd_iclevel_str,
+                     'control': ct.hd_control_str,
+                     'hloffer': ct.hd_hloffer_str,
+                     'hbcu': ct.hd_hbcu_str,
+                     'tribal': ct.hd_tribal_str,
+                     'locale': ct.hd_locale_str,
+                     'instsize': ct.hd_instsize_str,
+                     'landgrnt': ct.hd_landgrnt_str}
     hd_cat_cols = ['iclevel', 'control', 'hloffer', 'hbcu', 'tribal', 'locale',
                    'instsize', 'landgrnt']
     tc.update_meta('hd2017',
                    filepath='data/hd2017.csv',
                    keep_columns=hd_keep,
+                   map_values=hd_map_values,
                    category_columns=hd_cat_cols,
                    exclude_imputations=exclude_list)
 
