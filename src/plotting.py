@@ -185,6 +185,7 @@ def make_embedding_graph(X, y, topic, n=-1):
                    + topic)
     return fig, ax
 
+
 def scale(y, n_sigma):
     '''
     Scales y values to range between 0 and 1. 
@@ -193,6 +194,7 @@ def scale(y, n_sigma):
     '''
     yscl = (y - np.median(y))/(n_sigma*y.std()) + 0.5
     return np.clip(yscl, 0, 1)
+
 
 def plot_embedding(ax, X, y, title=None):
 
