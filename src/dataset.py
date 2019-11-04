@@ -151,12 +151,12 @@ class Dataset(object):
         if drop_old:
             self.drop_features(label)
 
-    def transform_features(self, features_dict):
+    def transform_features(self, features_dict, drop_old=True):
         '''
         features_dict: {feature_label: (new_label_name, function)}
         '''
         for label, (new_label, func) in features_dict.items():
-            self.transform_feature(label, new_label, func)
+            self.transform_feature(label, new_label, func, drop_old=drop_old)
 
     def transform_target(self, label, new_label, function, drop_old=True):
         idx = np.where(self.target_labels == label)
@@ -171,9 +171,9 @@ class Dataset(object):
         if drop_old:
             self.drop_targets(label)
 
-    def transform_targets(self, targets_dict):
+    def transform_targets(self, targets_dict, drop_old=True):
         '''
         targets_dict: {target_label: (new_label_name, function)}
         '''
         for label, (new_label, func) in targets_dict.items():
-            self.transform_target(label, new_label, func)
+            self.transform_target(label, new_label, func, drop_old=drop_old)
