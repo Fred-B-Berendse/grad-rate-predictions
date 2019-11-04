@@ -138,7 +138,7 @@ class Dataset(object):
         if self.target_colors is not None:
             [self.target_colors.pop(l) for l in target_labels]
 
-    def transform_feature(self, label, new_label, function):
+    def transform_feature(self, label, new_label, function, drop_old=True):
         idx = np.where(self.feature_labels == label)
         self.feature_labels = np.append(self.feature_labels, new_label)
         self.n_features += 1
@@ -148,7 +148,8 @@ class Dataset(object):
         self.X_test = np.append(self.X_test, te, axis=1)
         if self.feature_colors is not None:
             self.feature_colors[new_label] = self.feature_colors[label]
-        self.drop_features(label)
+        if drop_old:
+            self.drop_features(label)
 
     def transform_features(self, features_dict):
         '''
@@ -157,7 +158,7 @@ class Dataset(object):
         for label, (new_label, func) in features_dict.items():
             self.transform_feature(label, new_label, func)
 
-    def transform_target(self, label, new_label, function):
+    def transform_target(self, label, new_label, function, drop_old=True):
         idx = np.where(self.target_labels == label)
         self.target_labels = np.append(self.target_labels, new_label)
         self.n_targets += 1
@@ -167,7 +168,8 @@ class Dataset(object):
         self.Y_test = np.append(self.Y_test, te, axis=1)
         if self.target_colors is not None:
             self.target_colors[new_label] = self.target_colors[label]
-        self.drop_targets(label)
+        if drop_old:
+            self.drop_targets(label)
 
     def transform_targets(self, targets_dict):
         '''
