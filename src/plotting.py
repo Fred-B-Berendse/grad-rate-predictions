@@ -20,7 +20,7 @@ def make_histograms(X, bins=20, x_labels=None, colors=None, center=None):
     for i in range(nplots):
         axi = ax[i] if nplots <= 2 else ax[i//2, i % 2]
         data = X[:, i]
-        axi.hist(data, bins=bins, color=colors[i])
+        axi.hist(data, bins=bins, color=colors[i], alpha=0.8)
         if x_labels is not None:
             axi.set_xlabel(x_labels[i])
         if center is not None:
