@@ -129,7 +129,7 @@ if __name__ == "__main__":
     ax.set_title("Institution-wide Completion Percentage by Race/Ethnicity")
     plt.show()
 
-    # PCA plots: graduation percentages
+    # PCA plots: completion percentages
     feat_cols = ['iclevel_2', 'iclevel_3', 'iclevel_-3', 'control_1', 'control_2',
                  'control_-3', 'hloffer_3', 'hloffer_9', 'hloffer_5', 'hloffer_7',
                  'hloffer_4', 'hloffer_1', 'hloffer_8', 'hloffer_-3', 'hloffer_6',
