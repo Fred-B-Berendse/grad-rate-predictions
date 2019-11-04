@@ -107,7 +107,7 @@ The final step in the pipeline is to merge all of the tables by an institution's
 
 There are 307244 students in the 2011 cohort across all institutions in the dataset. Of those, 209811 students received a bachelor's degree within 150% of normal time (*i.e.* 6 years). The bar graph below shows the racial breakdown of these students. A bar graph of racial distribution from the U.S. Census (2018 estimate) is shown for comparison.
 
-![img/completions-bar.png](img/completion-bar.png)
+![img/completion-bar.png](img/completion-bar.png)
 
 *Number of bachelor's degree completions across all institutions in the dataset. U.S. Census (2018 estimate): https://www.census.gov/quickfacts/fact/table/US/IPE120218*
 
@@ -130,7 +130,7 @@ Likewise, institutions that graduate a high percentage of non-recipients also gr
 ![img/correlation-ps.png](img/correlation-ps.png)
 
 ### Principal Component Analysis
-A principal component analysis was performed on the table of institutions to determine if there is some combination of features (called a principal component) which can separate high graduation rates from low graduation rates. The first principal component accounts for 30.9% of the total variance of the data in feature space. Subsequent axes account for 10.2% or less per axis.
+A principal component analysis was performed on the table of institutions to determine if there is some combination of features (called a principal component) which can separate high graduation rates from low graduation rates. The first principal component accounts for 16.0% of the total variance of the data in feature space. Subsequent axes account for 6.3% or less per axis.
 
 ![img/pca-scree.png](img/pca-scree.png)
 *Principal Component Analysis (PCA) variance plot*
@@ -139,17 +139,17 @@ Below is a series of scatterplot maps of each institution along the two most imp
 
 |  |  |
 |:-------------------------:|:-------------------------:|
-| ![img/pca-white.png](img/pca-white.png) |  ![img/pca-black.png](img/pca-black.png) |
-| ![img/pca-hispanic.png](img/pca-hispanic.png) |  ![img/pca-asian.png](img/pca-asian.png) |
- ![img/pca-2plus.png](img/pca-2plus.png) |
+| ![img/pca-white-grad.png](img/pca-white-grad.png) |  ![img/pca-black-grad.png](img/pca-black-grad.png) |
+| ![img/pca-hispanic-grad.png](img/pca-hispanic-grad.png) |  ![img/pca-asian-grad.png](img/pca-asian-grad.png) |
+ ![img/pca-2plus-grad.png](img/pca-2plus-grad.png) |
  ||| 
  *Principal Component Analysis (PCA) maps of graduation rates by race*
 
 
 |  |  |
 |:-------------------------:|:-------------------------:|
-| ![img/pca-pell.png](img/pca-pell.png) |  ![img/pca-ssl.png](img/pca-ssl.png) |
-| ![img/pca-nonrecipient.png](img/pca-nonrecipient.png) ||
+| ![img/pca-pell-grad.png](img/pca-pell-grad.png) |  ![img/pca-ssl-grad.png](img/pca-ssl-grad.png) |
+| ![img/pca-nonrecipient-grad.png](img/pca-nonrecipient-grad.png) ||
 |||
 *Principal Component Analysis (PCA) maps of graduation rates by Pell/SSL status*
 
@@ -158,21 +158,26 @@ When graduation rates of different races or grant/loan status are used as labels
 
 | With Laplace Smoothing | Without Laplace Smoothing |
 |:-------------------------:|:-------------------------:|
-| ![img/pca-white.png](img/pca-white.png) |  ![img/pca-white-nosm.png](img/pca-white-nosm.png) |
-| ![img/pca-2plus.png](img/pca-2plus.png) |  ![img/pca-2plus-nosm.png](img/pca-2plus-nosm.png)|
-| ![img/pca-asian.png](img/pca-asian.png) |  ![img/pca-asian-nosm.png](img/pca-asian-nosm.png)|
+| ![img/pca-white-grad.png](img/pca-white-grad.png) |  ![img/pca-white-grad-nosm.png](img/pca-white-grad-nosm.png) |
+| ![img/pca-2plus-grad.png](img/pca-2plus-grad.png) |  ![img/pca-2plus-grad-nosm.png](img/pca-2plus-grad-nosm.png)|
+| ![img/pca-asian-grad.png](img/pca-asian-grad.png) |  ![img/pca-asian-grad-nosm.png](img/pca-asian-grad-nosm.png)|
 |||
 *Principal Component Analysis (PCA) maps with and without Laplace smoothing*
 
 It makes sense that these two minority categories would be affected by smoothing since they have smaller counts than other race categories. 
 
-The principal component analysis class in `sklearn` utilizes singular value decomposition (SVD) to determine the principal component axes. SVD decomposes a matrix of institutions and their features into a multiplication of three separate matrices. The last of these matrices contains values that indicate how each feature loads onto each principal component. By looking at the values in the first row of this vector, we can get a general idea of which features are most important along the first principal component. Below is a table of the five features that load most onto the first principal component axis:
+The principal component analysis class in `sklearn` utilizes singular value decomposition (SVD) to determine the principal component axes. SVD decomposes a matrix of institutions and their features into a multiplication of three separate matrices. The last of these matrices contains values that indicate how each feature loads onto each principal component. By looking at the values in the first row of this vector, we can get a general idea of which features are most important along the first principal component. Below are the ten features that load most onto the first principal component axis:
 
 * average math 25th percentile
 * average math 75th percentile
 * average english 25th percentile
 * average english 75th percentile
 * percent of undergraduates awarded a Pell Grant
+* average net price for students awarded grant or scholarship aid
+* percent of applicants admitted
+* institution size: 10,000 to 20,000 
+* percent of undergraduates awarded finiancial aid (any source)
+* percent of students living on campus
 
 ## Modeling
 
@@ -192,16 +197,36 @@ Multicollinearity can be checked by calculating a variance inflation factor for 
 
 | Feature | Description | Variance Inflation Factor |
 |---------|-------------|---------------------------|
-| latitude | latitude of institution | 1.09 |
-| longitud | longitude of institution | 1.14 |
-| enrlft_pct | percent of enrolled students attending full time | 1.20 |
-| enrlt_pct | percent of accepted students enrolled | 1.29 |
-| admssn_pct | percent of applicants accepted | 1.42 |
-| en25 | average of normalized ACT English/SAT Verbal 25th percentile | 2.81 |
-| uagrntp | percent of students awarded financial aid (any source) | 1.84 |
-| upgrntp | percent of students awarded Pell Grants | 3.17 |
-| grntwf2_pct | percent of students living with family off campus 2016-17 | 1.44 |
-| grntof2_pct | percent of students living off campus (not with family) 2016-17  | 1.32 |
+| control_privnp | control: private, not-for-profit | 1.19 |
+| hloffer_psotmc | highest degree: post-masters certificate | 1.08 |
+| hloffer_postbc | higest degree: post-bachelors certificate | 1.05 |
+| hbcu_yes | is a HBCU | 1.35 |
+| locale_ctylrg | locale: city, large | 1.68 |
+| locale_ctysml | locale: city, small | 1.41 |
+| locale_ctymid | locale: city, midsize | 1.41 |
+| locale_twndst | locale: town, distant | 1.69 |
+| locale_rurfrg | locale: rural, fringe | 1.23 |
+| locale_twnrem | locale: town, remote | 1.39 |
+| locale_submid | locale: suburb, midsize | 1.14 |
+| locale_subsml | locale: suburb: small | 1.14 |
+| locale_twnfrg | locale: town, fringe | 1.17 |
+| locale_rurdst | locale: rural, distant | 1.13 |
+| locale_rurrem | locale: rural, remote | 1.09 |
+| instsize_1to5k | institution size: 1,000 to 4,999 | 2.25 |
+| instsize_5to10k | institution size: 5,000 to 9,999 | 1.92 |
+| instsize_10to20k | institution size: 10,000 to 19,999 | 1.61 |
+| instsize_gt20k | institution size: 20,000+ | 1.38 |
+| longitud | longitude of institution | 1.13 |
+| latitude | latitutde of institution | 1.19 |
+| admssn_pct | percent of applicants admitted | 1.73 | 
+| enrlt_pct | percent of admissions enrolled | 1.71 |
+| enrltft_pct | percent of enrolled students attending full time | 1.20 |
+| en25 | average of normalized ACT English/SAT Verbal 25th percentile | 3.50 |
+| uagrntp | percent of students awarded financial aid (any source) | 1.64 |
+| upgrntp | percent of students awarded Pell Grants | 3.08 |
+| npgrn2 | Average net price - students awarded grant or scholarship aid, 2016-17| 2.15 |
+| grntwf2_pct | percent of students living with family off campus 2016-17 | 1.61 |
+| grntof2_pct | percent of students living off campus (not with family) 2016-17  | 1.40 |
 
 Several of the percentage features are very different than a normal distribution. Percentages bunched near zero (enrlt_pct and grntwf2_pct), these were transformed by the function `log10(percent + 1)`. Percentages bunched near 100 (enrlft_pct, uagrntp, and grntof2_pct) were transformed by the function `log10(101-percent)`. 
 
