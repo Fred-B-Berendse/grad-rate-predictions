@@ -83,196 +83,213 @@ if __name__ == "__main__":
     plt.show()
 
     # Make histograms of select features
-    col_groups = [['longitud', 'latitude'],
-                  ['admssn_pct', 'enrlt_pct'],
-                  ['enrlft_pct', 'npgrn2'],
-                  ['en25', 'en75', 'mt25', 'mt75'],
-                  ['uagrntp', 'upgrntp'],
-                  ['grnton2_pct', 'grntwf2_pct', 'grntof2_pct']]
-    label_groups = [['Longitude', 'Latitude'],
-                    ['Percent Admitted', 'Percent Enrolled'],
-                    ['Percent Full Time', 'Net Price: Pell Grant Students'],
-                    ['Scaled English 25th Percentile',
-                     'Scaled English 75th Percentile',
-                     'Scaled Math 25th Percentile',
-                     'Scaled Math 75th Percentile'],
-                    ['Percent Awarded Aid (any)',
-                     'Percent Awarded Pell Grant'],
-                    ['Percent On Campus: 2016-17',
-                     'Percent With Family: 2016-17',
-                     'Percent Off Campus: 2016-17']]
-    nplots = reduce(lambda count, l: count + len(l), col_groups, 0)
-    all_colors = cm.tab20(np.linspace(0, 1, num=nplots))
-    for group, labels in zip(col_groups, label_groups):
-        n = len(group)
-        colors = all_colors[0:n]
-        all_colors = all_colors[n:]
-        make_histograms(mdf.loc[:, group].values, x_labels=labels)
+    group = ['longitud', 'latitude',
+             'admssn_pct', 'enrlt_pct',
+             'enrlft_pct', 'npgrn2',
+             'en25', 'en75',
+             'mt25', 'mt75',
+             'uagrntp', 'upgrntp',
+             'grnton2_pct', 'grntwf2_pct',
+             'grntof2_pct']
+    labels = ['Longitude', 'Latitude',
+              'Percent Admitted', 'Percent Enrolled',
+              'Percent Full Time', 'Net Price: Pell Grant Students',
+              'Scaled English 25th Percentile',
+              'Scaled English 75th Percentile',
+              'Scaled Math 25th Percentile',
+              'Scaled Math 75th Percentile',
+              'Percent Awarded Aid (any)',
+              'Percent Awarded Pell Grant',
+              'Percent On Campus: 2016-17',
+              'Percent With Family: 2016-17',
+              'Percent Off Campus: 2016-17']
+    make_histograms(mdf.loc[:, group].values, x_labels=labels)
     plt.show()
 
     # Make histograms of graduation rates
+    group = ['cstcball_pct_gr2mort', 'cstcball_pct_grasiat',
+             'cstcball_pct_grbkaat', 'cstcball_pct_grhispt',
+             'cstcball_pct_grwhitt']
+    labels = ['2+ Races', 'Asian', 'Black', 'Hispanic', 'White']
+    x_labels = ['Graduation Rate: ' + l for l in labels]
+    colors = [race_color_dict[l] for l in labels]
+    make_histograms(mdf.loc[:, group].values, x_labels=x_labels, colors=colors)
+    plt.show()
 
+    group = ['pgcmbac_pct', 'sscmbac_pct', 'nrcmbac_pct']
+    labels = ['Pell Grant', 'SSL', 'Non-Recipient']
+    x_labels = ['Graduation Rate: ' + l for l in labels]
+    colors = [ssl_color_dict[l] for l in labels]
+    make_histograms(mdf.loc[:, group].values, x_labels=x_labels, colors=colors)
+    plt.show()
 
-    # select_cols = [
-    #                'cstcball_pct_gr2mort',
-    #                'cstcball_pct_grasiat',
-    #                'cstcball_pct_grbkaat', 'cstcball_pct_grhispt',
-    #                'cstcball_pct_grwhitt', 'cstcball_rat_gr2mort',
-    #                'cstcball_rat_grasiat', 'cstcball_rat_grbkaat',
-    #                'cstcball_rat_grhispt', 'nrcmbac_pct', 'pgcmbac_pct',
-    #                'pgcmbac_rat', 'sscmbac_pct', 'sscmbac_rat']
+    # Make histograms of graduation ratios
+    group = ['cstcball_rat_gr2mort', 'cstcball_rat_grasiat',
+             'cstcball_rat_grbkaat', 'cstcball_rat_grhispt']
+    labels = ['2+ Races', 'Asian', 'Black', 'Hispanic']
+    x_labels = ['Graduation Rate Ratio: ' + l + ' to White' for l in labels]
+    colors = [race_color_dict[l] for l in labels]
+    make_histograms(mdf.loc[:, group].values, x_labels=x_labels, colors=colors)
+    plt.show()
 
-    # # institutional rank percentiles vs SAT/ACT benchmark quartiles
-    # fig, ax = make_rank_plot(mdf, ['satvr25', 'acten25'], 'en25',
-    #                          ['SAT Verbal 25th Percentile',
-    #                          'ACT English 25th Percentile'])
+    group = ['pgcmbac_rat', 'sscmbac_rat']
+    labels = ['Pell Grant', 'SSL']
+    x_labels = ['Graduation Rate: ' + l + ' to Non-Recipient' for l in labels]
+    colors = [ssl_color_dict[l] for l in labels]
+    make_histograms(mdf.loc[:, group].values, x_labels=x_labels, colors=colors)
+    plt.show()
 
-    # fig, ax = make_rank_plot(mdf, ['satvr75', 'acten75'], 'en75',
-    #                          ['SAT Verbal 75th Percentile',
-    #                          'ACT English 75th Percentile'])
+    # institutional rank percentiles vs SAT/ACT benchmark quartiles
+    fig, ax = make_rank_plot(mdf, ['satvr25', 'acten25'], 'en25',
+                             ['SAT Verbal 25th Percentile',
+                             'ACT English 25th Percentile'])
 
-    # fig, ax = make_rank_plot(mdf, ['satmt25', 'actmt25'], 'mt25',
-    #                          ['SAT Math 25th Percentile',
-    #                          'ACT Math 25th Percentile'])
+    fig, ax = make_rank_plot(mdf, ['satvr75', 'acten75'], 'en75',
+                             ['SAT Verbal 75th Percentile',
+                             'ACT English 75th Percentile'])
 
-    # fig, ax = make_rank_plot(mdf, ['satmt75', 'actmt75'], 'mt75',
-    #                          ['SAT Math 75th Percentile',
-    #                          'ACT Math 75th Percentile'])
-    # plt.show()
+    fig, ax = make_rank_plot(mdf, ['satmt25', 'actmt25'], 'mt25',
+                             ['SAT Math 25th Percentile',
+                             'ACT Math 25th Percentile'])
 
-    # # Sum of all students
-    # columns = ['cstrevex_grwhitt', 'cstrevex_grhispt', 'cstrevex_grbkaat',
-    #            'cstrevex_grasiat', 'cstrevex_graiant', 'cstrevex_grnhpit',
-    #            'cstrevex_gr2mort']
-    # print("Total cohort count: ", mdf.loc[:, columns].sum().sum())
+    fig, ax = make_rank_plot(mdf, ['satmt75', 'actmt75'], 'mt75',
+                             ['SAT Math 75th Percentile',
+                             'ACT Math 75th Percentile'])
+    plt.show()
 
-    # # Completion counts & US Population
-    # columns = ['cstcball_grwhitt', 'cstcball_grhispt', 'cstcball_grbkaat',
-    #            'cstcball_grasiat', 'cstcball_graiant', 'cstcball_grnhpit', 
-    #            'cstcball_gr2mort']
-    # labels = ['White', 'Hispanic', 'Black', 'Asian', 'Nat. Am.', 'Pac. Isl.',
-    #           '2+ Races']
-    # colors = get_colors(labels, race_color_dict)
-    # completions = mdf.loc[:, columns].sum(axis=0).values
-    # sum_completions = completions.sum()
-    # print("Total completions: ", sum_completions)
-    # census_pct = np.array([60.4, 18.3, 13.4, 5.9, 1.3, 0.2, 2.7])
-    # census_ct = census_pct / census_pct.sum() * sum_completions
-    # x_labels = ["Completions", "US Census"]
-    # y_label = 'Number of students'
-    # bars = [completions, census_ct]
-    # fig, ax = make_stacked_barplot(bars, x_labels=x_labels, y_label=y_label,
-    #                                colors=colors, stack_labels=labels, width=3)
-    # plt.show()
+    # Sum of all students
+    columns = ['cstrevex_grwhitt', 'cstrevex_grhispt', 'cstrevex_grbkaat',
+               'cstrevex_grasiat', 'cstrevex_graiant', 'cstrevex_grnhpit',
+               'cstrevex_gr2mort']
+    print("Total cohort count: ", mdf.loc[:, columns].sum().sum())
 
-    # # Violin plots of completion percentages
-    # columns = ['pgcmbac_pct', 'sscmbac_pct', 'nrcmbac_pct']
-    # col_labels = ['Pell Grant', 'SSL', 'Non-Recipient']
-    # colors = get_colors(col_labels, ssl_color_dict)
-    # fig, ax, colors_ps = make_violin_plots(mdf, columns, col_labels,
-    #                                        colors=colors)
-    # ax.set_ylabel('Percentage of Completions')
-    # ax.set_title("Institution-wide Completion Percentage by Recipient Status")
-    # plt.show()
+    # Completion counts & US Population
+    columns = ['cstcball_grwhitt', 'cstcball_grhispt', 'cstcball_grbkaat',
+               'cstcball_grasiat', 'cstcball_graiant', 'cstcball_grnhpit', 
+               'cstcball_gr2mort']
+    labels = ['White', 'Hispanic', 'Black', 'Asian', 'Nat. Am.', 'Pac. Isl.',
+              '2+ Races']
+    colors = get_colors(labels, race_color_dict)
+    completions = mdf.loc[:, columns].sum(axis=0).values
+    sum_completions = completions.sum()
+    print("Total completions: ", sum_completions)
+    census_pct = np.array([60.4, 18.3, 13.4, 5.9, 1.3, 0.2, 2.7])
+    census_ct = census_pct / census_pct.sum() * sum_completions
+    x_labels = ["Completions", "US Census"]
+    y_label = 'Number of students'
+    bars = [completions, census_ct]
+    fig, ax = make_stacked_barplot(bars, x_labels=x_labels, y_label=y_label,
+                                   colors=colors, stack_labels=labels, width=3)
+    plt.show()
 
-    # columns = ['cstcball_pct_gr2mort', 'cstcball_pct_grasiat',
-    #            'cstcball_pct_grbkaat', 'cstcball_pct_grhispt',
-    #            'cstcball_pct_grwhitt']
-    # col_labels = ['2+ Races', 'Asian', 'Black', 'Hispanic', 'White']
-    # colors = get_colors(col_labels, race_color_dict)
-    # fig, ax, colors_race = make_violin_plots(mdf, columns, col_labels,
-    #                                          colors=colors)
-    # ax.set_ylabel('Percentage of Completions')
-    # ax.set_title("Institution-wide Completion Percentage by Race/Ethnicity")
-    # plt.show()
+    # Violin plots of completion percentages
+    columns = ['pgcmbac_pct', 'sscmbac_pct', 'nrcmbac_pct']
+    col_labels = ['Pell Grant', 'SSL', 'Non-Recipient']
+    colors = get_colors(col_labels, ssl_color_dict)
+    fig, ax, colors_ps = make_violin_plots(mdf, columns, col_labels,
+                                           colors=colors)
+    ax.set_ylabel('Percentage of Completions')
+    ax.set_title("Institution-wide Completion Percentage by Recipient Status")
+    plt.show()
 
-    # # PCA plots: completion percentages
-    # feat_cols = ['iclevel_2to4', 'iclevel_0to2', 'iclevel_na',
-    #              'control_public', 'control_privnp', 'control_na',
-    #              'hloffer_assoc', 'hloffer_doct', 'hloffer_bach',
-    #              'hloffer_mast', 'hloffer_2to4yr', 'hloffer_0to1yr',
-    #              'hloffer_postmc', 'hloffer_na', 'hloffer_postbc',
-    #              'hbcu_yes', 'locale_ctylrg', 'locale_ctysml',
-    #              'locale_ctymid', 'locale_twndst', 'locale_rurfrg',
-    #              'locale_twnrem', 'locale_submid', 'locale_subsml',
-    #              'locale_twnfrg', 'locale_rurdst', 'locale_rurrem',
-    #              'locale_na', 'instsize_1to5k', 'instsize_5to10k',
-    #              'instsize_10to20k', 'instsize_na', 'instsize_gt20k',
-    #              'instsize_norpt', 'landgrnt_yes', 'longitud', 'latitude',
-    #              'admssn_pct', 'enrlt_pct', 'enrlft_pct', 'en25', 'en75',
-    #              'mt25', 'mt75', 'uagrntp', 'upgrntp', 'npgrn2', 'grnton2_pct']
+    columns = ['cstcball_pct_gr2mort', 'cstcball_pct_grasiat',
+               'cstcball_pct_grbkaat', 'cstcball_pct_grhispt',
+               'cstcball_pct_grwhitt']
+    col_labels = ['2+ Races', 'Asian', 'Black', 'Hispanic', 'White']
+    colors = get_colors(col_labels, race_color_dict)
+    fig, ax, colors_race = make_violin_plots(mdf, columns, col_labels,
+                                             colors=colors)
+    ax.set_ylabel('Percentage of Completions')
+    ax.set_title("Institution-wide Completion Percentage by Race/Ethnicity")
+    plt.show()
 
-    # target_cols = ['cstcball_pct_grwhitt', 'cstcball_pct_grbkaat',
-    #                'cstcball_pct_grhispt', 'cstcball_pct_grasiat',
-    #                'cstcball_pct_gr2mort', 'pgcmbac_pct', 'sscmbac_pct',
-    #                'nrcmbac_pct']
+    # PCA plots: completion percentages
+    feat_cols = ['iclevel_2to4', 'iclevel_0to2', 'iclevel_na',
+                 'control_public', 'control_privnp', 'control_na',
+                 'hloffer_assoc', 'hloffer_doct', 'hloffer_bach',
+                 'hloffer_mast', 'hloffer_2to4yr', 'hloffer_0to1yr',
+                 'hloffer_postmc', 'hloffer_na', 'hloffer_postbc',
+                 'hbcu_yes', 'locale_ctylrg', 'locale_ctysml',
+                 'locale_ctymid', 'locale_twndst', 'locale_rurfrg',
+                 'locale_twnrem', 'locale_submid', 'locale_subsml',
+                 'locale_twnfrg', 'locale_rurdst', 'locale_rurrem',
+                 'locale_na', 'instsize_1to5k', 'instsize_5to10k',
+                 'instsize_10to20k', 'instsize_na', 'instsize_gt20k',
+                 'instsize_norpt', 'landgrnt_yes', 'longitud', 'latitude',
+                 'admssn_pct', 'enrlt_pct', 'enrlft_pct', 'en25', 'en75',
+                 'mt25', 'mt75', 'uagrntp', 'upgrntp', 'npgrn2', 'grnton2_pct']
 
-    # # Read in the dataframe with one-hot-encoded categories
-    # mdf = pd.read_csv('data/ipeds_2017_cats_eda.csv')
-    # mdf.drop('Unnamed: 0', axis=1, inplace=True)
-    # ds = Dataset.from_df(mdf, feat_cols, target_cols, test_size=0,
-    #                      random_state=10)
+    target_cols = ['cstcball_pct_grwhitt', 'cstcball_pct_grbkaat',
+                   'cstcball_pct_grhispt', 'cstcball_pct_grasiat',
+                   'cstcball_pct_gr2mort', 'pgcmbac_pct', 'sscmbac_pct',
+                   'nrcmbac_pct']
 
-    # labels = ['White', 'Black', 'Hispanic', 'Asian', '2+ Races', 'Pell Grant',
-    #           'SSL', 'Non-Recipient']
-    # ds.target_labels = [l + ' Graduation Rate' for l in labels]
-    # race_colors = get_colors(labels[:-3], race_color_dict)
-    # ps_colors = get_colors(labels[-3:], ssl_color_dict)
-    # ds.target_colors = np.append(race_colors, ps_colors, axis=0)
-    # pca_pct = PCAModel(ds)
-    # pca_pct.plot_embedding(n_obs=100)
-    # plt.show()
+    # Read in the dataframe with one-hot-encoded categories
+    mdf = pd.read_csv('data/ipeds_2017_cats_eda.csv')
+    mdf.drop('Unnamed: 0', axis=1, inplace=True)
+    ds = Dataset.from_df(mdf, feat_cols, target_cols, test_size=0,
+                         random_state=10)
 
-    # idx = np.argsort(abs(pca_pct.components[0]))[:-11:-1]
-    # print("Rates: Heavy features on first PCA axis:")
-    # _ = [print(f"{feat_cols[i]}: {pca_pct.components[0, i]}") for i in idx]
+    labels = ['White', 'Black', 'Hispanic', 'Asian', '2+ Races', 'Pell Grant',
+              'SSL', 'Non-Recipient']
+    ds.target_labels = [l + ' Graduation Rate' for l in labels]
+    race_colors = get_colors(labels[:-3], race_color_dict)
+    ps_colors = get_colors(labels[-3:], ssl_color_dict)
+    ds.target_colors = np.append(race_colors, ps_colors, axis=0)
+    pca_pct = PCAModel(ds)
+    pca_pct.plot_embedding(n_obs=100)
+    plt.show()
 
-    # # Variance (scree) plot
-    # pca_pct.plot_variance()
-    # plt.show()
+    idx = np.argsort(abs(pca_pct.components[0]))[:-11:-1]
+    print("Rates: Heavy features on first PCA axis:")
+    _ = [print(f"{feat_cols[i]}: {pca_pct.components[0, i]}") for i in idx]
 
-    # # PCA plots: graduation ratios
-    # target_cols = ['cstcball_rat_grbkaat', 'cstcball_rat_grhispt',
-    #                'cstcball_rat_grasiat', 'cstcball_rat_gr2mort',
-    #                'pgcmbac_rat', 'sscmbac_rat']
+    # Variance (scree) plot
+    pca_pct.plot_variance()
+    plt.show()
 
-    # ds = Dataset.from_df(mdf, feat_cols, target_cols, test_size=0,
-    #                      random_state=10)
+    # PCA plots: graduation ratios
+    target_cols = ['cstcball_rat_grbkaat', 'cstcball_rat_grhispt',
+                   'cstcball_rat_grasiat', 'cstcball_rat_gr2mort',
+                   'pgcmbac_rat', 'sscmbac_rat']
 
-    # labels = ['Black', 'Hispanic', 'Asian', '2+ Races', 'Pell Grant',
-    #           'SSL']
-    # ds.target_labels = [l + ' to Baseline Graduation Ratio' for l in labels]
-    # race_colors = get_colors(labels[:-2], race_color_dict)
-    # ps_colors = get_colors(labels[-2:], ssl_color_dict)
-    # ds.target_colors = np.append(race_colors, ps_colors, axis=0)
-    # pca_rat = PCAModel(ds)
-    # pca_rat.plot_embedding(n_obs=100, n_digits=2)
-    # plt.show()
+    ds = Dataset.from_df(mdf, feat_cols, target_cols, test_size=0,
+                         random_state=10)
 
-    # # Correlation Graphs
-    # columns = ['cstcball_pct_gr2mort', 'cstcball_pct_grasiat',
-    #            'cstcball_pct_grbkaat', 'cstcball_pct_grhispt']
-    # labels = ['2+ Races Graduation Rate', 'Asian Graduation Rate',
-    #           'Black Graduation Rate', 'Hispanic Graduation Rate']
-    # fig, ax = plt.subplots(2, 2, figsize=(14, 12))
-    # for i, c in enumerate(columns):
-    #     axi = ax[i//2, i % 2]
-    #     axi.scatter(mdf['cstcball_pct_grwhitt'], mdf[c], color=colors_race[i],
-    #                 alpha=0.3)
-    #     axi.set_xlabel('White Graduation Rate')
-    #     axi.set_ylabel(labels[i])
-    #     axi.plot([0, 100], [0, 100], linestyle='--', color='black')
-    # plt.show()
+    labels = ['Black', 'Hispanic', 'Asian', '2+ Races', 'Pell Grant',
+              'SSL']
+    ds.target_labels = [l + ' to Baseline Graduation Ratio' for l in labels]
+    race_colors = get_colors(labels[:-2], race_color_dict)
+    ps_colors = get_colors(labels[-2:], ssl_color_dict)
+    ds.target_colors = np.append(race_colors, ps_colors, axis=0)
+    pca_rat = PCAModel(ds)
+    pca_rat.plot_embedding(n_obs=100, n_digits=2)
+    plt.show()
 
-    # columns = ['pgcmbac_pct', 'sscmbac_pct']
-    # labels = ['Pell Graduation Rate', 'SSL Graduation Rate']
-    # fig, ax = plt.subplots(1, 2, figsize=(14, 6))
-    # for i, c in enumerate(columns):
-    #     axi = ax[i]
-    #     axi.scatter(mdf['nrcmbac_pct'], mdf[c], color=colors_ps[i],
-    #                 alpha=0.3)
-    #     axi.set_xlabel('Non-Recipient Graduation Rate')
-    #     axi.set_ylabel(labels[i])
-    #     axi.plot([0, 100], [0, 100], linestyle='--', color='black')
-    # plt.show()
+    # Correlation Graphs
+    columns = ['cstcball_pct_gr2mort', 'cstcball_pct_grasiat',
+               'cstcball_pct_grbkaat', 'cstcball_pct_grhispt']
+    labels = ['2+ Races Graduation Rate', 'Asian Graduation Rate',
+              'Black Graduation Rate', 'Hispanic Graduation Rate']
+    fig, ax = plt.subplots(2, 2, figsize=(14, 12))
+    for i, c in enumerate(columns):
+        axi = ax[i//2, i % 2]
+        axi.scatter(mdf['cstcball_pct_grwhitt'], mdf[c], color=colors_race[i],
+                    alpha=0.3)
+        axi.set_xlabel('White Graduation Rate')
+        axi.set_ylabel(labels[i])
+        axi.plot([0, 100], [0, 100], linestyle='--', color='black')
+    plt.show()
+
+    columns = ['pgcmbac_pct', 'sscmbac_pct']
+    labels = ['Pell Graduation Rate', 'SSL Graduation Rate']
+    fig, ax = plt.subplots(1, 2, figsize=(14, 6))
+    for i, c in enumerate(columns):
+        axi = ax[i]
+        axi.scatter(mdf['nrcmbac_pct'], mdf[c], color=colors_ps[i],
+                    alpha=0.3)
+        axi.set_xlabel('Non-Recipient Graduation Rate')
+        axi.set_ylabel(labels[i])
+        axi.plot([0, 100], [0, 100], linestyle='--', color='black')
+    plt.show()
 
