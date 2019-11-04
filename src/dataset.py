@@ -1,5 +1,7 @@
 import numpy as np
 import pandas as pd
+import matplotlib.pyplot as plt
+from plotting import make_histograms
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 from matplotlib import cm
@@ -177,3 +179,70 @@ class Dataset(object):
         '''
         for label, (new_label, func) in targets_dict.items():
             self.transform_target(label, new_label, func, drop_old=drop_old)
+
+    def make_feature_histograms(self, features, x_labels=None, colors=None,
+                                center=None):
+        indexes = [np.where(ds.feature_labels == f) for f in features]
+        indexes = np.array(indexes).flatten()
+        make_histograms(self.X_train[:, indexes], x_labels=x_labels,
+                        colors=colors, center=center)
+
+
+def log10_sm(x):
+    return np.log10(x + 1)
+
+
+def log10u_sm(x):
+    return np.log10(101-x)
+
+
+if __name__ == "__main__":
+    mdf = pd.read_csv('data/ipeds_2017_cats_eda.csv')
+    mdf.drop(['Unnamed: 0', 'applcn'], axis=1, inplace=True)
+
+    feat_cols = np.array(['control_privnp', 'hloffer_postmc', 'hloffer_postbc',
+                          'hbcu_yes', 'locale_ctylrg', 'locale_ctysml',
+                          'locale_ctymid', 'locale_twndst', 'locale_rurfrg',
+                          'locale_twnrem', 'locale_submid', 'locale_subsml',
+                          'locale_twnfrg', 'locale_rurdst', 'locale_rurrem',
+                          'instsize_1to5k', 'instsize_5to10k',
+                          'instsize_10to20k', 'instsize_gt20k', 'longitud',
+                          'latitude', 'admssn_pct', 'enrlt_pct', 'enrlft_pct',
+                          'en25', 'uagrntp', 'upgrntp', 'npgrn2',
+                          'grntof2_pct', 'grntwf2_pct'])
+
+    target_cols = np.array(['cstcball_pct_gr2mort', 'cstcball_pct_grasiat',
+                            'cstcball_pct_grbkaat', 'cstcball_pct_grhispt',
+                            'cstcball_pct_grwhitt', 'pgcmbac_pct',
+                            'sscmbac_pct', 'nrcmbac_pct'])
+
+    ds = Dataset.from_df(mdf, feat_cols, target_cols, test_size=0.25,
+                         random_state=10)
+
+    tr_feature_dict = {'enrlt_pct': ('log_enrlt_pct', log10_sm),
+                       'grntwf2_pct': ('log_grntwf2_pct', log10_sm),
+                       'grntof2_pct': ('log_grntof2_pct', log10_sm),
+                       'uagrntp': ('logu_uagrntp', log10u_sm),
+                       'enrlft_pct': ('logu_enrlft_pct', log10u_sm)}
+
+    ds.transform_features(tr_feature_dict, drop_old=False)
+
+    features = ['enrlt_pct', 'log_enrlt_pct',
+                'enrlft_pct', 'logu_enrlft_pct',
+                'uagrntp', 'logu_uagrntp',
+                'grntwf2_pct', 'log_grntwf2_pct',
+                'grntof2_pct', 'log_grntof2_pct']
+    x_labels = ['Percent Enrolled', 'Log Percent Enrolled',
+                'Percent Full Time', 'Log (100 - Percent Full Time)',
+                'Percent Awarded Aid (any)',
+                'Log (100 - Percent Awarded Aid (any))',
+                'Percent With Family: 2016-17',
+                'Log Percent With Family: 2016-17',
+                'Percent Off Campus: 2016-17',
+                'Log Percent Off Campus: 2016-17']
+
+    # indexes = np.array([np.where(ds.feature_labels == f) for f in features])
+    # indexes = indexes.flatten()
+    # make_histograms(ds.X_train[:, indexes], x_labels=x_labels)
+    ds.make_feature_histograms(features, x_labels=x_labels)
+    plt.show()
