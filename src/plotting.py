@@ -14,7 +14,8 @@ def make_histograms(X, bins=20, x_labels=None, colors=None, center=None):
     nplots = X.shape[1]
     nplotrows = math.ceil(nplots/2)
     if colors is None:
-        colors = cm.tab10(np.linspace(0, 1, nplots))
+        # colors = cm.tab10(np.linspace(0, 1, nplots))
+        colors = np.repeat(None, nplots)
     fig, ax = plt.subplots(nplotrows, 2, figsize=(12, 4*nplotrows))
     for i in range(nplots):
         axi = ax[i] if nplots <= 2 else ax[i//2, i % 2]
@@ -35,7 +36,8 @@ def make_scatterplots(X, Y, x_labels=None, y_labels=None, colors=None,
     nplots = X.shape[1]
     nplotrows = math.ceil(nplots/2)
     if colors is None:
-        colors = cm.tab10(np.linspace(0, 1, nplots))
+        # colors = cm.tab10(np.linspace(0, 1, nplots))
+        colors = np.repeat(None, nplots)
     fig, ax = plt.subplots(nplotrows, 2, figsize=(12, 4*nplotrows))
     for i in range(nplots):
         axi = ax[i//2, i % 2]
