@@ -148,7 +148,7 @@ class Dataset(object):
         self.X_test = np.append(self.X_test, te, axis=1)
         if self.feature_colors is not None:
             self.feature_colors[new_label] = self.feature_colors[label]
-        # self.drop_features(label)
+        self.drop_features(label)
 
     def transform_features(self, features_dict):
         '''
@@ -175,23 +175,3 @@ class Dataset(object):
         '''
         for label, (new_label, func) in targets_dict.items():
             self.transform_target(label, new_label, func)
-
-
-if __name__ == "__main__":
-
-    mdf = pd.read_csv('data/ipeds_2017_model.csv')
-    mdf.drop(['Unnamed: 0', 'applcn'], axis=1, inplace=True)
-
-    feat_cols = np.array(['iclevel', 'tribal', 'longitud', 'latitude',
-                          'enrlft_pct', 'enrlt_pct', 'admssn_pct', 'en25',
-                          'mt25', 'en75', 'mt75', 'uagrntp', 'upgrntp',
-                          'grnton2_pct', 'grntwf2_pct', 'grntof2_pct'])
-
-    target_cols = np.array(['cstcball_pct_gr2mort', 'cstcball_pct_grasiat',
-                            'cstcball_pct_grbkaat', 'cstcball_pct_grhispt',
-                            'cstcball_pct_grwhitt', 'pgcmbac_pct',
-                            'sscmbac_pct', 'nrcmbac_pct'])
-
-    ds = Dataset.from_df(mdf, feat_cols, target_cols, test_size=0.25,
-                         random_state=10)
-    ds.assign_colors()
