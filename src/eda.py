@@ -1,12 +1,11 @@
 import matplotlib.pyplot as plt
-from functools import reduce
 from matplotlib import cm
 import numpy as np
 import pandas as pd
 from plotting import make_histograms, make_rank_plot
 from plotting import make_barplot, make_stacked_barplot, make_violin_plots
-from plotting import make_color_dict, get_colors
 from plotting import scree_plot, make_embedding_graph
+from colors import targets_color_dict, get_colors
 from dataset import Dataset
 from sklearn.decomposition import PCA
 plt.style.use('seaborn-whitegrid')
@@ -57,16 +56,12 @@ class PCAModel(object):
 
 if __name__ == "__main__":
 
-    # Make color dictionaries
-    labels = ['Asian', 'Black', 'Hispanic', 'Nat. Am.', 'Pac. Isl.', 'White',
-              '2+ Races']
-    race_color_dict = make_color_dict(labels, cm.Accent)
-    labels = ['Pell Grant', 'SSL', 'Non-Recipient']
-    ssl_color_dict = make_color_dict(labels, cm.brg)
-
     # Read in the dataframe without one-hot-encoded categories
     mdf = pd.read_csv('data/ipeds_2017_eda.csv')
     mdf.drop('Unnamed: 0', axis=1, inplace=True)
+
+    # Make color dictionaries
+    tar_color_dict = targets_color_dict()
 
     # Make barplots of select categorical values
     select_cols = ['control', 'hloffer', 'hbcu', 'locale',
@@ -112,14 +107,14 @@ if __name__ == "__main__":
              'cstcball_pct_grwhitt']
     labels = ['2+ Races', 'Asian', 'Black', 'Hispanic', 'White']
     x_labels = ['Graduation Rate: ' + l for l in labels]
-    colors = [race_color_dict[l] for l in labels]
+    colors = [tar_color_dict[l] for l in labels]
     make_histograms(mdf.loc[:, group].values, x_labels=x_labels, colors=colors)
     plt.show()
 
     group = ['pgcmbac_pct', 'sscmbac_pct', 'nrcmbac_pct']
     labels = ['Pell Grant', 'SSL', 'Non-Recipient']
     x_labels = ['Graduation Rate: ' + l for l in labels]
-    colors = [ssl_color_dict[l] for l in labels]
+    colors = [tar_color_dict[l] for l in labels]
     make_histograms(mdf.loc[:, group].values, x_labels=x_labels, colors=colors)
     plt.show()
 
@@ -128,14 +123,14 @@ if __name__ == "__main__":
              'cstcball_rat_grbkaat', 'cstcball_rat_grhispt']
     labels = ['2+ Races', 'Asian', 'Black', 'Hispanic']
     x_labels = ['Graduation Rate Ratio: ' + l + ' to White' for l in labels]
-    colors = [race_color_dict[l] for l in labels]
+    colors = [tar_color_dict[l] for l in labels]
     make_histograms(mdf.loc[:, group].values, x_labels=x_labels, colors=colors)
     plt.show()
 
     group = ['pgcmbac_rat', 'sscmbac_rat']
     labels = ['Pell Grant', 'SSL']
     x_labels = ['Graduation Rate: ' + l + ' to Non-Recipient' for l in labels]
-    colors = [ssl_color_dict[l] for l in labels]
+    colors = [tar_color_dict[l] for l in labels]
     make_histograms(mdf.loc[:, group].values, x_labels=x_labels, colors=colors)
     plt.show()
 
@@ -169,7 +164,7 @@ if __name__ == "__main__":
                'cstcball_gr2mort']
     labels = ['White', 'Hispanic', 'Black', 'Asian', 'Nat. Am.', 'Pac. Isl.',
               '2+ Races']
-    colors = get_colors(labels, race_color_dict)
+    colors = get_colors(labels, tar_color_dict)
     completions = mdf.loc[:, columns].sum(axis=0).values
     sum_completions = completions.sum()
     print("Total completions: ", sum_completions)
@@ -185,7 +180,7 @@ if __name__ == "__main__":
     # Violin plots of completion percentages
     columns = ['pgcmbac_pct', 'sscmbac_pct', 'nrcmbac_pct']
     col_labels = ['Pell Grant', 'SSL', 'Non-Recipient']
-    colors = get_colors(col_labels, ssl_color_dict)
+    colors = get_colors(col_labels, tar_color_dict)
     fig, ax, colors_ps = make_violin_plots(mdf, columns, col_labels,
                                            colors=colors)
     ax.set_ylabel('Percentage of Completions')
@@ -196,7 +191,7 @@ if __name__ == "__main__":
                'cstcball_pct_grbkaat', 'cstcball_pct_grhispt',
                'cstcball_pct_grwhitt']
     col_labels = ['2+ Races', 'Asian', 'Black', 'Hispanic', 'White']
-    colors = get_colors(col_labels, race_color_dict)
+    colors = get_colors(col_labels, tar_color_dict)
     fig, ax, colors_race = make_violin_plots(mdf, columns, col_labels,
                                              colors=colors)
     ax.set_ylabel('Percentage of Completions')
@@ -233,8 +228,8 @@ if __name__ == "__main__":
     labels = ['White', 'Black', 'Hispanic', 'Asian', '2+ Races', 'Pell Grant',
               'SSL', 'Non-Recipient']
     ds.target_labels = [l + ' Graduation Rate' for l in labels]
-    race_colors = get_colors(labels[:-3], race_color_dict)
-    ps_colors = get_colors(labels[-3:], ssl_color_dict)
+    race_colors = get_colors(labels[:-3], tar_color_dict)
+    ps_colors = get_colors(labels[-3:], tar_color_dict)
     ds.target_colors = np.append(race_colors, ps_colors, axis=0)
     pca_pct = PCAModel(ds)
     pca_pct.plot_embedding(n_obs=100)
@@ -259,8 +254,8 @@ if __name__ == "__main__":
     labels = ['Black', 'Hispanic', 'Asian', '2+ Races', 'Pell Grant',
               'SSL']
     ds.target_labels = [l + ' to Baseline Graduation Ratio' for l in labels]
-    race_colors = get_colors(labels[:-2], race_color_dict)
-    ps_colors = get_colors(labels[-2:], ssl_color_dict)
+    race_colors = get_colors(labels[:-2], tar_color_dict)
+    ps_colors = get_colors(labels[-2:], tar_color_dict)
     ds.target_colors = np.append(race_colors, ps_colors, axis=0)
     pca_rat = PCAModel(ds)
     pca_rat.plot_embedding(n_obs=100, n_digits=2)
