@@ -1,12 +1,9 @@
 import matplotlib.pyplot as plt
-from matplotlib import cm
 import numpy as np
 import pandas as pd
-from sklearn.preprocessing import StandardScaler
 from sklearn.linear_model import LinearRegression
-from sklearn.model_selection import train_test_split
-from plotting import make_histograms, make_scatterplots, make_heatmap
-from plotting import make_color_dict
+from plotting import make_scatterplots, make_heatmap
+from colors import targets_color_dict, get_colors
 from dataset import Dataset
 from regressor import Regressor
 
@@ -43,7 +40,7 @@ class LinearRegressor(Regressor):
 
     def plot_scale_locations(self):
         y_labels = ['sqrt(|Residual|)' for _ in self.dataset.target_labels]
-        x_labels = ['Predicted '+l for l in self.dataset.target_labels]
+        x_labels = ['Predicted: '+l for l in self.dataset.target_labels]
         sc_loc = self._calc_scale_location()
         colors = [self.dataset.target_colors[l]
                   for l in self.dataset.target_labels]
@@ -118,22 +115,11 @@ if __name__ == "__main__":
                             'cstcball_pct_grwhitt', 'pgcmbac_pct',
                             'sscmbac_pct', 'nrcmbac_pct'])
 
-    labels = ['2+ Races', 'Asian', 'Black', 'Hispanic', 'White', 'Pell Grant',
-              'SSL', 'Non-Recipient']
-
     ds = Dataset.from_df(mdf, feat_cols, target_cols, test_size=0.25,
                          random_state=10)
-    ds.target_labels = np.array(['Graduation Rate: ' + l for l in labels])
-
-    # Assign colors to the dataset
-    labels = ['Asian', 'Black', 'Hispanic', 'Nat. Am.', 'Pac. Isl.', 'White',
-              '2+ Races']
-    labels = np.array(['Graduation Rate: ' + l for l in labels]) 
-    color_dict = make_color_dict(labels, cm.Accent)
-    labels = ['Pell Grant', 'SSL', 'Non-Recipient']
-    labels = np.array(['Graduation Rate: ' + l for l in labels])
-    color_dict.update(make_color_dict(labels, cm.brg))
-    ds.target_colors = color_dict
+    ds.target_labels = ['2+ Races', 'Asian', 'Black', 'Hispanic', 'White', 'Pell Grant',
+                        'SSL', 'Non-Recipient']
+    ds.target_colors = targets_color_dict()
 
     # Calculate variance inflation factors
     lr = LinearRegressor(LinearRegression(), ds)
@@ -174,11 +160,6 @@ if __name__ == "__main__":
     lr.fit_train()
     lr.predict()
 
-    # Calculate training and test scores
-    train_r2, test_r2 = lr.r_squared()
-    for f, tr, te in zip(ds.target_labels, train_r2, test_r2):
-        print("{} - R^2 train: {:.4f}; R^2 test: {:.4f}".format(f, tr, te))
-
     # Make histograms of the residuals
     lr.plot_residuals()
     plt.show()
@@ -187,11 +168,14 @@ if __name__ == "__main__":
     lr.plot_scale_locations()
     plt.show()
 
-    # Calculate RMSE for each target
+    # Calculate R^2 and RMSE for each target
+    train_r2, test_r2 = lr.r_squared()
     sc_train_rmse, sc_test_rmse = lr.rmse()
     train_rmse, test_rmse = lr.rmse(unscale=True)
     for i, f in enumerate(ds.target_labels):
         print("{}".format(f))
+        formstr = "  train R^2: {:.3f}; test R^2: {:.3f}"
+        print(formstr.format(train_r2[i], test_r2[i]))
         formstr = "  Scaled train RMSE: {:.2f}; test RMSE: {:.2f}"
         print(formstr.format(sc_train_rmse[i], sc_test_rmse[i]))
         formstr = "  Unscaled train RMSE: {:.2f}; test RMSE: {:.2f}"
