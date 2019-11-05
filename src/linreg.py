@@ -62,7 +62,8 @@ class LinearRegressor(Regressor):
             X = np.apply_along_axis(lambda r: r * scale, 0, X)
             X[:, 0] = self.dataset.targets_scaler.mean_
 
-        make_heatmap(X.T, y_labels=self.dataset.feature_labels,
+        y_labels = np.insert(self.dataset.feature_labels, 0, 'Intercept')
+        make_heatmap(X.T, y_labels=y_labels,
                      x_labels=self.dataset.target_labels,
                      cmap='seismic_r', center=0)
 
@@ -95,22 +96,22 @@ if __name__ == "__main__":
     #              'mt25', 'mt75', 'uagrntp', 'upgrntp', 'npgrn2', 
     #              'grnton2_pct', 'grntof2_pct', 'grntwf2_pct']
 
-    # # Surviving features after VIF elimination
-    # feat_cols = np.array(['control_privnp', 'hloffer_postmc', 'hloffer_postbc',
-    #                       'hbcu_yes', 'locale_ctylrg', 'locale_ctysml',
-    #                       'locale_ctymid', 'locale_twndst', 'locale_rurfrg',
-    #                       'locale_twnrem', 'locale_submid', 'locale_subsml',
-    #                       'locale_twnfrg', 'locale_rurdst', 'locale_rurrem',
-    #                       'instsize_1to5k', 'instsize_5to10k',
-    #                       'instsize_10to20k', 'instsize_gt20k', 'longitud',
-    #                       'latitude', 'admssn_pct', 'enrlt_pct', 'enrlft_pct',
-    #                       'en25', 'uagrntp', 'upgrntp', 'npgrn2',
-    #                       'grntof2_pct', 'grntwf2_pct'])
-
-    # Test of capstone 2 features
-    feat_cols = np.array(['longitud', 'latitude', 'admssn_pct', 'enrlt_pct',
-                          'enrlft_pct', 'en25', 'uagrntp', 'upgrntp',
+    # Surviving features after VIF elimination
+    feat_cols = np.array(['control_privnp', 'hloffer_postmc', 'hloffer_postbc',
+                          'hbcu_yes', 'locale_ctylrg', 'locale_ctysml',
+                          'locale_ctymid', 'locale_twndst', 'locale_rurfrg',
+                          'locale_twnrem', 'locale_submid', 'locale_subsml',
+                          'locale_twnfrg', 'locale_rurdst', 'locale_rurrem',
+                          'instsize_1to5k', 'instsize_5to10k',
+                          'instsize_10to20k', 'instsize_gt20k', 'longitud',
+                          'latitude', 'admssn_pct', 'enrlt_pct', 'enrlft_pct',
+                          'en25', 'uagrntp', 'upgrntp', 'npgrn2',
                           'grntof2_pct', 'grntwf2_pct'])
+
+    # # Test of capstone 2 features
+    # feat_cols = np.array(['longitud', 'latitude', 'admssn_pct', 'enrlt_pct',
+    #                       'enrlft_pct', 'en25', 'uagrntp', 'upgrntp',
+    #                       'grntof2_pct', 'grntwf2_pct'])
 
     target_cols = np.array(['cstcball_pct_gr2mort', 'cstcball_pct_grasiat',
                             'cstcball_pct_grbkaat', 'cstcball_pct_grhispt',
