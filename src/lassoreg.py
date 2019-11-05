@@ -3,112 +3,191 @@ from matplotlib import cm
 import numpy as np
 import pandas as pd
 from sklearn.preprocessing import StandardScaler
-from sklearn.linear_model import LassoLarsCV
+from sklearn.linear_model import LinearRegression
 from sklearn.model_selection import train_test_split
-from linreg import make_histograms, make_scatterplots, make_heatmap
+from plotting import make_histograms, make_scatterplots, make_heatmap
+from plotting import make_color_dict
+from dataset import Dataset
+from regressor import Regressor
+
+
+class LinearRegressor(Regressor):
+
+    def __init__(self, model, dataset):
+        self.model = model
+        self.dataset = dataset
+        self.train_predict = None
+        self.test_predict = None
+        self.train_residuals = None
+        self.test_residuals = None
+        self.sc_coeffs = None
+        self.coeffs = None
+        self.means = None
+
+    def calc_vifs(self):
+        Xarr = self.dataset.X_train
+        vifs = np.array([], dtype=float)
+        for i in range(Xarr.shape[1]):
+            X = Xarr.copy()
+            y = X[:, i]
+            X = np.delete(X, i, axis=1)
+            reg = LinearRegression(n_jobs=-1).fit(X, y)
+            r_sq = reg.score(X, y)
+            vif = 1.0/(1.0-r_sq) if r_sq < 1.0 else np.inf
+            vifs = np.append(vifs, vif)
+        return vifs
+
+    def _calc_scale_location(self):
+        stdev_resid = np.sqrt(np.sum(self.test_residuals**2, axis=0))
+        return np.sqrt(np.abs(self.test_residuals/stdev_resid))
+
+    def plot_scale_locations(self):
+        y_labels = ['sqrt(|Residual|)' for _ in self.dataset.target_labels]
+        x_labels = ['Predicted '+l for l in self.dataset.target_labels]
+        sc_loc = self._calc_scale_location()
+        colors = [self.dataset.target_colors[l]
+                  for l in self.dataset.target_labels]
+        fig, ax = make_scatterplots(self.test_predict, sc_loc,
+                                    x_labels=x_labels,
+                                    y_labels=y_labels,
+                                    colors=colors)
+
+    def plot_coeffs_heatmap(self, normalized=False):
+
+        X = self.model.coef_
+        X = np.insert(X, 0, np.zeros(X.shape[0]), axis=1)
+
+        if not normalized:
+            scale = self.dataset.targets_scaler.scale_
+            X = np.apply_along_axis(lambda r: r * scale, 0, X)
+            X[:, 0] = self.dataset.targets_scaler.mean_
+
+        make_heatmap(X.T, y_labels=self.dataset.feature_labels,
+                     x_labels=self.dataset.target_labels,
+                     cmap='seismic_r', center=0)
+
+    def log10_sm(x):
+        return np.log10(x + 1)
+
+    def log10u_sm(x):
+        return np.log10(101-x)
 
 
 if __name__ == "__main__":
 
-    mdf = pd.read_csv('data/ipeds_2017_model.csv')
+    mdf = pd.read_csv('data/ipeds_2017_cats_eda.csv')
     mdf.drop(['Unnamed: 0', 'applcn'], axis=1, inplace=True)
 
-    mdf['log_enrlt_pct'] = np.log10(mdf['enrlt_pct'])
-    mdf['log_grntwf2_pct'] = np.log10(mdf['grntwf2_pct']+1)
-    mdf['log_grntof2_pct'] = np.log10(mdf['grntof2_pct']+1)
-    mdf['logu_uagrntp'] = np.log10(101-mdf['uagrntp'])
-    mdf['logu_grntof2_pct'] = np.log10(101-mdf['grntof2_pct'])
-    mdf['logu_enrlft_pct'] = np.log10(101-mdf['enrlft_pct'])
+    # Original features
+    # feat_cols = ['iclevel_2to4', 'iclevel_0to2', 'iclevel_na',
+    #              'control_public', 'control_privnp', 'control_na',
+    #              'hloffer_assoc', 'hloffer_doct', 'hloffer_bach',
+    #              'hloffer_mast', 'hloffer_2to4yr', 'hloffer_0to1yr',
+    #              'hloffer_postmc', 'hloffer_na', 'hloffer_postbc',
+    #              'hbcu_yes', 'tribal_yes', 'locale_ctylrg', 'locale_ctysml',
+    #              'locale_ctymid', 'locale_twndst', 'locale_rurfrg',
+    #              'locale_twnrem', 'locale_submid', 'locale_subsml',
+    #              'locale_twnfrg', 'locale_rurdst', 'locale_rurrem',
+    #              'locale_na', 'instsize_1to5k', 'instsize_5to10k',
+    #              'instsize_10to20k', 'instsize_na', 'instsize_gt20k',
+    #              'instsize_norpt', 'landgrnt_yes', 'longitud', 'latitude',
+    #              'admssn_pct', 'enrlt_pct', 'enrlft_pct', 'en25', 'en75',
+    #              'mt25', 'mt75', 'uagrntp', 'upgrntp', 'npgrn2', 
+    #              'grnton2_pct', 'grntof2_pct', 'grntwf2_pct']
 
-    feat_cols = np.array(['longitud', 'latitude', 'logu_enrlft_pct',
-                          'log_enrlt_pct', 'admssn_pct', 'en25',
-                          'logu_uagrntp', 'upgrntp', 'log_grntwf2_pct',
-                          'logu_grntof2_pct'])
+    # Surviving features after VIF elimination
+    feat_cols = np.array(['control_privnp', 'hloffer_postmc', 'hloffer_postbc',
+                          'hbcu_yes', 'locale_ctylrg', 'locale_ctysml',
+                          'locale_ctymid', 'locale_twndst', 'locale_rurfrg',
+                          'locale_twnrem', 'locale_submid', 'locale_subsml',
+                          'locale_twnfrg', 'locale_rurdst', 'locale_rurrem',
+                          'instsize_1to5k', 'instsize_5to10k',
+                          'instsize_10to20k', 'instsize_gt20k', 'longitud',
+                          'latitude', 'admssn_pct', 'enrlt_pct', 'enrlft_pct',
+                          'en25', 'uagrntp', 'upgrntp', 'npgrn2',
+                          'grntof2_pct', 'grntwf2_pct'])
 
     target_cols = np.array(['cstcball_pct_gr2mort', 'cstcball_pct_grasiat',
                             'cstcball_pct_grbkaat', 'cstcball_pct_grhispt',
                             'cstcball_pct_grwhitt', 'pgcmbac_pct',
                             'sscmbac_pct', 'nrcmbac_pct'])
-    race_labels = ['Two or More Races', 'Asian', 'Black', 'Hispanic', 'White']
-    race_colors = cm.Accent(np.linspace(0, 1, len(race_labels)))
-    pgs_labels = ['Pell Grant', 'SSL', 'Non-Recipient']
-    pgs_colors = cm.Set2(np.linspace(0, 1, len(pgs_labels)))
-    labels = np.append(race_labels, pgs_labels)
-    colors = np.append(race_colors, pgs_colors, axis=0)
 
-    # Create a train-test split
-    X_train, X_test, Y_train, Y_test = train_test_split(
-            mdf.loc[:, feat_cols].values,
-            mdf.loc[:, target_cols].values, random_state=10)
+    labels = ['2+ Races', 'Asian', 'Black', 'Hispanic', 'White', 'Pell Grant',
+              'SSL', 'Non-Recipient']
 
-    # scale the training and test sets
-    xsc = StandardScaler()
-    X_train_sc = xsc.fit_transform(X_train)
-    X_test_sc = xsc.transform(X_test)
-    ysc = StandardScaler()
-    Y_train_sc = ysc.fit_transform(Y_train)
-    Y_test_sc = ysc.transform(Y_test)
+    ds = Dataset.from_df(mdf, feat_cols, target_cols, test_size=0.25,
+                         random_state=10)
+    ds.target_labels = np.array(['Graduation Rate: ' + l for l in labels])
 
-    # Fit the training and test data
-    regarr = []
-    Y_pred_sc = np.array([])
-    for i in range(len(target_cols)):
-        print(f"target: {target_cols[i]}")
-        reg = LassoLarsCV(cv=5, fit_intercept=False, n_jobs=-1)
-        x_train, y_train = X_train_sc, Y_train_sc[:, i]
-        reg.fit(x_train, y_train)
-        print(f"mean y_train = {y_train.mean()}")
-        print(f"train R^2 = {reg.score(x_train, y_train)}")
-        x_test, y_test = X_test_sc, Y_test_sc[:, i]
-        print(f"test R^2 = {reg.score(x_test, y_test)}")
-        print(f"mean y_test = {y_test.mean()}")
-        regarr.append(reg)
-        y_pred = reg.predict(x_test)
-        Y_pred_sc = np.append(Y_pred_sc, y_pred)
-    Y_pred_sc = Y_pred_sc.reshape(Y_test_sc.shape)
+    # Assign colors to the dataset
+    labels = ['Asian', 'Black', 'Hispanic', 'Nat. Am.', 'Pac. Isl.', 'White',
+              '2+ Races']
+    labels = np.array(['Graduation Rate: ' + l for l in labels]) 
+    color_dict = make_color_dict(labels, cm.Accent)
+    labels = ['Pell Grant', 'SSL', 'Non-Recipient']
+    labels = np.array(['Graduation Rate: ' + l for l in labels])
+    color_dict.update(make_color_dict(labels, cm.brg))
+    ds.target_colors = color_dict
 
-    # Make histogram of the residuals
-    Y_resid_sc = Y_test_sc - Y_pred_sc
-    x_labels = ['Residuals: ' + l for l in labels]
-    fig, ax = make_histograms(Y_resid_sc, x_labels=x_labels,
-                              colors=colors, center=0)
+    # Calculate variance inflation factors
+    lr = LinearRegressor(LinearRegression(), ds)
+    vifs = lr.calc_vifs()
+    print(f"VIF: {vifs}")
+
+    # transform some features
+    tr_feature_dict = {'enrlt_pct': ('log_enrlt_pct', lr.log10_sm),
+                       'grntwf2_pct': ('log_grntwf2_pct', lr.log10_sm),
+                       'grntof2_pct': ('log_grntof2_pct', lr.log10_sm),
+                       'uagrntp': ('logu_uagrntp', lr.log10u_sm),
+                       'enrlft_pct': ('logu_enrlft_pct', lr.log10u_sm)}
+    ds.transform_features(tr_feature_dict, drop_old=False)
+
+    # Plot histograms of transformed features
+    features = ['enrlt_pct', 'log_enrlt_pct',
+                'enrlft_pct', 'logu_enrlft_pct',
+                'uagrntp', 'logu_uagrntp',
+                'grntwf2_pct', 'log_grntwf2_pct',
+                'grntof2_pct', 'log_grntof2_pct']
+    x_labels = ['Percent Enrolled', 'Log Percent Enrolled',
+                'Percent Full Time', 'Log (100 - Percent Full Time)',
+                'Percent Awarded Aid (any)',
+                'Log (100 - Percent Awarded Aid (any))',
+                'Percent With Family: 2016-17',
+                'Log Percent With Family: 2016-17',
+                'Percent Off Campus: 2016-17',
+                'Log Percent Off Campus: 2016-17']
+    ds.make_feature_histograms(features, x_labels=x_labels)
     plt.show()
 
-    # Plot scale-location plot vs predicted values
-    # Scale-location plot is sqrt(abs(resid)/std(residuals))
-    stdev_resid = np.sqrt(np.sum(Y_resid_sc**2, axis=0))
-    std_Y_resid_sc = np.sqrt(np.abs(Y_resid_sc/stdev_resid))
-    y_labels = ['sqrt(|Residual|)' for _ in labels]
-    x_labels = ['Predicted Norm. Rate: ' + l for l in labels]
-    fig, ax = make_scatterplots(Y_pred_sc, std_Y_resid_sc, x_labels=x_labels,
-                                y_labels=y_labels, colors=colors)
+    features = ['enrlt_pct', 'grntwf2_pct', 'grntof2_pct', 'uagrntp',
+                'enrlft_pct']
+    ds.drop_features(features)
+    ds.scale_features_targets()
+
+    # Perform fitting and predicting
+    lr.fit_train()
+    lr.predict()
+
+    # Calculate training and test scores
+    train_r2, test_r2 = lr.r_squared()
+    for f, tr, te in zip(ds.target_labels, train_r2, test_r2):
+        print("{} - R^2 train: {:.4f}; R^2 test: {:.4f}".format(f, tr, te))
+
+    # Make histograms of the residuals
+    lr.plot_residuals()
+    plt.show()
+
+    # Make scale-location vs predicted values plots
+    lr.plot_scale_locations()
     plt.show()
 
     # Calculate RMSE for each target
-    rmse_sc = np.sqrt((Y_resid_sc**2).sum(axis=0)/Y_resid_sc.shape[0])
-    rmse = rmse_sc*ysc.scale_
-    for k, v in zip(labels, rmse):
-        print(f"RMSE for {k}: {v}")
+    train_rmse, test_rmse = lr.rmse()
+    for f, tr, te in zip(ds.target_labels, train_rmse, test_rmse):
+        print("{} - RMSE train: {:.4f}; RMSE test: {:.4f}".format(f, tr, te))
 
-    # Plot the coefficients heatmaps
-    coeffs_sc = np.array([])
-    for reg in regarr:
-        coeffs_sc = np.append(coeffs_sc, reg.coef_)
-    coeffs_sc = coeffs_sc.reshape(len(regarr), len(feat_cols))
-    coeffs_sc = np.insert(coeffs_sc, 0, np.zeros(coeffs_sc.shape[0]), axis=1)
-    x_labels = np.insert(feat_cols, 0, 'Intercept')
-    ax = make_heatmap(coeffs_sc, x_labels=x_labels, y_labels=labels,
-                      cmap='seismic_r', center=0)
+    # Plot heatmap of the coefficients
+    lr.plot_coeffs_heatmap(normalized=True)
     plt.show()
-
-    coeffs = np.apply_along_axis(lambda r: r*ysc.scale_, 0, coeffs_sc)
-    coeffs[:, 0] = ysc.mean_
-    ax = make_heatmap(coeffs, x_labels=x_labels, y_labels=labels,
-                      cmap='seismic_r', center=0)
+    lr.plot_coeffs_heatmap(normalized=False)
     plt.show()
-
-    # Print statistics for each test
-    for i, reg in enumerate(regarr):
-        print(f"target: {labels[i]}")
-        print(f"  alpha: {reg.alpha_}")
-        print(f"  n_itr: {reg.n_iter_}")
