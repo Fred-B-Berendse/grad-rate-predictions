@@ -48,6 +48,15 @@ class Regressor(object):
             rmse_test = rmse_test * scale
         return rmse_train, rmse_test
 
+    def mae(self, unscale=False):
+        mae_train = np.mean(np.abs(self.train_residuals), axis=0)
+        mae_test = np.mean(np.abs(self.test_residuals), axis=0)
+        if unscale:
+            scale = self.dataset.targets_scaler.scale_
+            mae_train = mae_train * scale
+            mae_test = mae_test * scale
+        return mae_train, mae_test
+
     def plot_residuals(self):
         '''
         graphs residuals vs predicted value for test data
