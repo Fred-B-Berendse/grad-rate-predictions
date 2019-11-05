@@ -26,7 +26,7 @@ class Regressor(object):
 
     def _tss(self):
         mean_train = np.mean(self.dataset.Y_train, axis=0)
-        mean_test = np.mean(self.dataset.Y_mean, axis=0)
+        mean_test = np.mean(self.dataset.Y_test, axis=0)
         tss_train = np.sum(np.square(self.dataset.Y_train-mean_train))
         tss_test = np.sum(np.square(self.dataset.Y_test-mean_test))
         return tss_train, tss_test
@@ -44,10 +44,11 @@ class Regressor(object):
 
     def plot_residuals(self):
         '''
-        graphs residuals vs predicted value for given data set
-        ('test' or 'train')
+        graphs residuals vs predicted value for test data
         '''
         x_labels = ['Residuals: ' + l for l in self.dataset.target_labels]
-        fig, ax = make_histograms(self.dataset.test_residuals,
+        colors = [self.dataset.target_colors[l]
+                  for l in self.dataset.target_labels]
+        fig, ax = make_histograms(self.test_residuals,
                                   x_labels=x_labels, center=0,
-                                  colors=self.dataset.target_colors)
+                                  colors=colors)
