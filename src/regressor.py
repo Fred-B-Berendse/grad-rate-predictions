@@ -20,15 +20,15 @@ class Regressor(object):
         self.test_residuals = self.dataset.Y_test - self.test_predict
 
     def _rss(self):
-        rss_train = np.sum(np.square(self.train_residuals))
-        rss_test = np.sum(np.square(self.test_residuals))
+        rss_train = np.sum(np.square(self.train_residuals), axis=0)
+        rss_test = np.sum(np.square(self.test_residuals), axis=0)
         return rss_train, rss_test
 
     def _tss(self):
         mean_train = np.mean(self.dataset.Y_train, axis=0)
         mean_test = np.mean(self.dataset.Y_test, axis=0)
-        tss_train = np.sum(np.square(self.dataset.Y_train-mean_train))
-        tss_test = np.sum(np.square(self.dataset.Y_test-mean_test))
+        tss_train = np.sum(np.square(self.dataset.Y_train-mean_train), axis=0)
+        tss_test = np.sum(np.square(self.dataset.Y_test-mean_test), axis=0)
         return tss_train, tss_test
 
     def r_squared(self):
