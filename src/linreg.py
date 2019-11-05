@@ -41,6 +41,9 @@ class LinearRegressor(Regressor):
         self.test_predict = None
         self.train_residuals = None
         self.test_residuals = None
+        self.sc_coeffs = None
+        self.coeffs = None
+        self.means = None
 
     def calc_vifs(self):
         Xarr = self.dataset.X_train
@@ -55,28 +58,34 @@ class LinearRegressor(Regressor):
             vifs = np.append(vifs, vif)
         return vifs
 
-    def _calc_qq(self, target):
-        pass
+    def _calc_scale_location(self):
+        stdev_resid = np.sqrt(np.sum(self.test_residuals**2, axis=0))
+        return np.sqrt(np.abs(self.test_residuals/stdev_resid))
 
-    def plot_residual_qq(self, targets_list=None):
-        '''
-        plots the qq plot of each residual in targets_list
-        if targets_list is none, plot all targets
-        '''
-        pass
+    def plot_scale_locations(self):
+        y_labels = ['sqrt(|Residual|)' for _ in self.dataset.target_labels]
+        x_labels = ['Predicted '+l for l in self.dataset.target_labels]
+        sc_loc = self._calc_scale_location()
+        colors = [self.dataset.target_colors[l]
+                  for l in self.dataset.target_labels]
+        fig, ax = make_scatterplots(self.test_predict, sc_loc,
+                                    x_labels=x_labels,
+                                    y_labels=y_labels,
+                                    colors=colors)
 
-    def _calc_scale_location(self, target):
-        pass
+    def plot_coeffs_heatmap(self, normalized=False):
 
-    def plot_scale_locations(self, target_list):
-        pass
+        X = self.model.coef_
+        X = np.insert(X, 0, np.zeros(X.shape[0]), axis=1)
 
-    def plot_coeffs_heatmap(features, targets, standardized=False):
-        '''
-        if normalized=True, then standardized coefficients are graphed
-        otherwise regular coefficients are graphed
-        '''
-        pass
+        if not normalized:
+            scale = self.dataset.targets_scaler.scale_
+            X = np.apply_along_axis(lambda r: r * scale, 0, X)
+            X[:, 0] = self.dataset.targets_scaler.mean_
+
+        make_heatmap(X.T, y_labels=self.dataset.feature_labels,
+                     x_labels=self.dataset.target_labels,
+                     cmap='seismic_r', center=0)
 
 
 if __name__ == "__main__":
@@ -176,40 +185,24 @@ if __name__ == "__main__":
 
     # Calculate training and test scores
     train_r2, test_r2 = lr.r_squared()
-    print("R^2 train: {:.4f}; R^2 test: {:.4f}".format(train_r2, test_r2))
+    for f, tr, te in zip(ds.target_labels, train_r2, test_r2):
+        print("{} - R^2 train: {:.4f}; R^2 test: {:.4f}".format(f, tr, te))
 
     # Make histograms of the residuals
     lr.plot_residuals()
     plt.show()
 
     # Make scale-location vs predicted values plots
-    
-    # # Plot scale-location plot vs predicted values
-    # # Scale-location plot is sqrt(abs(resid)/std(residuals))
-    # stdev_resid = np.sqrt(np.sum(Y_resid_sc**2, axis=0))
-    # std_Y_resid_sc = np.sqrt(np.abs(Y_resid_sc/stdev_resid))
-    # y_labels = ['sqrt(|Residual|)' for _ in labels]
-    # x_labels = ['Predicted Norm. Rate: ' + l for l in labels]
-    # fig, ax = make_scatterplots(Y_pred_sc, std_Y_resid_sc, x_labels=x_labels,
-    #                             y_labels=y_labels, colors=colors)
-    # plt.show()
+    lr.plot_scale_locations()
+    plt.show()
 
-    # # Calculate RMSE for each target
-    # rmse_sc = np.sqrt((Y_resid_sc**2).sum(axis=0)/Y_resid_sc.shape[0])
-    # rmse = rmse_sc*ysc.scale_
-    # for k, v in zip(labels, rmse):
-    #     print(f"RMSE for {k}: {v}")
+    # Calculate RMSE for each target
+    train_rmse, test_rmse = lr.rmse()
+    for f, tr, te in zip(ds.target_labels, train_rmse, test_rmse):
+        print("{} - RMSE train: {:.4f}; RMSE test: {:.4f}".format(f, tr, te))
 
-    # coeffs_sc = reg.coef_
-    # coeffs_sc = np.insert(coeffs_sc, 0, np.zeros(coeffs_sc.shape[0]), axis=1)
-    # x_labels = np.insert(feat_cols, 0, 'Intercept')
-    # ax = make_heatmap(coeffs_sc, x_labels=x_labels, y_labels=labels,
-    #                   cmap='seismic_r', center=0)
-    # plt.show()
-
-    # coeffs = np.apply_along_axis(lambda r: r*ysc.scale_, 0, coeffs_sc)   
-    # coeffs[:, 0] = ysc.mean_
-    # ax = make_heatmap(coeffs, x_labels=x_labels, y_labels=labels,
-    #                   cmap='seismic_r', center=0)
-    # plt.show()
-
+    # Plot heatmap of the coefficients
+    lr.plot_coeffs_heatmap(normalized=True)
+    plt.show()
+    lr.plot_coeffs_heatmap(normalized=False)
+    plt.show()
