@@ -256,20 +256,3 @@ def sample_array(arr, n):
         return np.array(arr)
     idx = np.arange(0, len(arr), step=step, dtype=int)
     return np.array([arr[i] for i in idx])
-
-
-def make_color_dict(labels, cmap, start=0, end=1):
-    '''
-    Makes a dictionary of colors for each key in keys
-    '''
-    colors = cmap(np.linspace(start, end, len(labels)))
-    return dict(zip(labels, colors))
-
-
-def get_colors(labels, color_dict):
-    '''
-    Extracts a list of colors from a color dictionary in the order of labels
-    '''
-    results = []
-    [results.append(color_dict[l]) for l in labels]
-    return np.array(results)
