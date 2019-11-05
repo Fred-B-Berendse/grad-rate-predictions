@@ -11,27 +11,6 @@ from dataset import Dataset
 from regressor import Regressor
 
 
-def log10_sm(x):
-    return np.log10(x + 1)
-
-
-def log10u_sm(x):
-    return np.log10(101-x)
-
-
-def variance_inflation_factors(Xarr):
-    vifs = np.array([], dtype=float)
-    for i in range(Xarr.shape[1]):
-        X = Xarr.copy()
-        y = X[:, i]
-        X = np.delete(X, i, axis=1)
-        reg = LinearRegression(n_jobs=-1).fit(X, y)
-        r_sq = reg.score(X, y)
-        vif = 1.0/(1.0-r_sq) if r_sq < 1.0 else np.inf
-        vifs = np.append(vifs, vif)
-    return vifs
-
-
 class LinearRegressor(Regressor):
 
     def __init__(self, model, dataset):
@@ -86,6 +65,12 @@ class LinearRegressor(Regressor):
         make_heatmap(X.T, y_labels=self.dataset.feature_labels,
                      x_labels=self.dataset.target_labels,
                      cmap='seismic_r', center=0)
+
+    def log10_sm(x):
+        return np.log10(x + 1)
+
+    def log10u_sm(x):
+        return np.log10(101-x)
 
 
 if __name__ == "__main__":
@@ -150,11 +135,11 @@ if __name__ == "__main__":
     print(f"VIF: {vifs}")
 
     # transform some features
-    tr_feature_dict = {'enrlt_pct': ('log_enrlt_pct', log10_sm),
-                       'grntwf2_pct': ('log_grntwf2_pct', log10_sm),
-                       'grntof2_pct': ('log_grntof2_pct', log10_sm),
-                       'uagrntp': ('logu_uagrntp', log10u_sm),
-                       'enrlft_pct': ('logu_enrlft_pct', log10u_sm)}
+    tr_feature_dict = {'enrlt_pct': ('log_enrlt_pct', lr.log10_sm),
+                       'grntwf2_pct': ('log_grntwf2_pct', lr.log10_sm),
+                       'grntof2_pct': ('log_grntof2_pct', lr.log10_sm),
+                       'uagrntp': ('logu_uagrntp', lr.log10u_sm),
+                       'enrlft_pct': ('logu_enrlft_pct', lr.log10u_sm)}
     ds.transform_features(tr_feature_dict, drop_old=False)
 
     # Plot histograms of transformed features
