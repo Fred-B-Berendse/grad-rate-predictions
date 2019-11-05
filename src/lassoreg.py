@@ -53,8 +53,8 @@ if __name__ == "__main__":
 
     ds = Dataset.from_df(mdf, feat_cols, target_cols, test_size=0.25,
                          random_state=10)
-    ds.target_labels = ['2+ Races', 'Asian', 'Black', 'Hispanic', 'White', 'Pell Grant',
-                        'SSL', 'Non-Recipient']
+    ds.target_labels = ['2+ Races', 'Asian', 'Black', 'Hispanic', 'White',
+                        'Pell Grant', 'SSL', 'Non-Recipient']
     ds.target_colors = targets_color_dict()
 
     model = MultiTaskLassoCV(cv=5, fit_intercept=False, n_jobs=-1)
