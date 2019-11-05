@@ -6,6 +6,7 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.linear_model import LinearRegression
 from sklearn.model_selection import train_test_split
 from plotting import make_histograms, make_scatterplots, make_heatmap
+from plotting import make_color_dict
 from dataset import Dataset
 from regressor import Regressor
 
@@ -97,85 +98,92 @@ if __name__ == "__main__":
     #              'instsize_10to20k', 'instsize_na', 'instsize_gt20k',
     #              'instsize_norpt', 'landgrnt_yes', 'longitud', 'latitude',
     #              'admssn_pct', 'enrlt_pct', 'enrlft_pct', 'en25', 'en75',
-    #              'mt25', 'mt75', 'uagrntp', 'upgrntp', 'npgrn2', 'grnton2_pct',
-    #              'grntof2_pct', 'grntwf2_pct']
+    #              'mt25', 'mt75', 'uagrntp', 'upgrntp', 'npgrn2', 
+    #              'grnton2_pct', 'grntof2_pct', 'grntwf2_pct']
 
     # Surviving features after VIF elimination
-    feat_cols = ['control_privnp', 'hloffer_postmc', 'hloffer_postbc',
-                 'hbcu_yes', 'locale_ctylrg', 'locale_ctysml',
-                 'locale_ctymid', 'locale_twndst', 'locale_rurfrg',
-                 'locale_twnrem', 'locale_submid', 'locale_subsml',
-                 'locale_twnfrg', 'locale_rurdst', 'locale_rurrem',
-                 'instsize_1to5k', 'instsize_5to10k', 'instsize_10to20k',
-                 'instsize_gt20k', 'longitud', 'latitude',
-                 'admssn_pct', 'enrlt_pct', 'enrlft_pct',
-                 'en25', 'uagrntp', 'upgrntp',
-                 'npgrn2', 'grntof2_pct', 'grntwf2_pct']
+    feat_cols = np.array(['control_privnp', 'hloffer_postmc', 'hloffer_postbc',
+                          'hbcu_yes', 'locale_ctylrg', 'locale_ctysml',
+                          'locale_ctymid', 'locale_twndst', 'locale_rurfrg',
+                          'locale_twnrem', 'locale_submid', 'locale_subsml',
+                          'locale_twnfrg', 'locale_rurdst', 'locale_rurrem',
+                          'instsize_1to5k', 'instsize_5to10k',
+                          'instsize_10to20k', 'instsize_gt20k', 'longitud',
+                          'latitude', 'admssn_pct', 'enrlt_pct', 'enrlft_pct',
+                          'en25', 'uagrntp', 'upgrntp', 'npgrn2',
+                          'grntof2_pct', 'grntwf2_pct'])
 
     target_cols = np.array(['cstcball_pct_gr2mort', 'cstcball_pct_grasiat',
                             'cstcball_pct_grbkaat', 'cstcball_pct_grhispt',
                             'cstcball_pct_grwhitt', 'pgcmbac_pct',
                             'sscmbac_pct', 'nrcmbac_pct'])
 
+    labels = ['2+ Races', 'Asian', 'Black', 'Hispanic', 'White', 'Pell Grant',
+              'SSL', 'Non-Recipient']
+
     ds = Dataset.from_df(mdf, feat_cols, target_cols, test_size=0.25,
                          random_state=10)
-    ds.scale_features_targets()
+    ds.target_labels = np.array(['Graduation Rate: ' + l for l in labels])
 
+    # Assign colors to the dataset
+    labels = ['Asian', 'Black', 'Hispanic', 'Nat. Am.', 'Pac. Isl.', 'White',
+              '2+ Races']
+    labels = np.array(['Graduation Rate: ' + l for l in labels]) 
+    color_dict = make_color_dict(labels, cm.Accent)
+    labels = ['Pell Grant', 'SSL', 'Non-Recipient']
+    labels = np.array(['Graduation Rate: ' + l for l in labels])
+    color_dict.update(make_color_dict(labels, cm.brg))
+    ds.target_colors = color_dict
+
+    # Calculate variance inflation factors
     lr = LinearRegressor(LinearRegression(), ds)
-    lr.dataset = ds
-
     vifs = lr.calc_vifs()
     print(f"VIF: {vifs}")
 
-    # Make histograms of the features
-    lr.make
-
     # transform some features
-    # tr_feature_dict = {'enrlt_pct': ('log_enrlt_pct', log10_sm),
-    #                    'grntwf2_pct': ('log_grntwf2_pct', log10_sm),
-    #                    'grntof2_pct': ('log_grntof2_pct', log10_sm),
-    #                    'uagrntp': ('logu_uagrntp', log10u_sm),
-    #                    'enrlft_pct': ('logu_enrlft_pct', log10u_sm)}
+    tr_feature_dict = {'enrlt_pct': ('log_enrlt_pct', log10_sm),
+                       'grntwf2_pct': ('log_grntwf2_pct', log10_sm),
+                       'grntof2_pct': ('log_grntof2_pct', log10_sm),
+                       'uagrntp': ('logu_uagrntp', log10u_sm),
+                       'enrlft_pct': ('logu_enrlft_pct', log10u_sm)}
+    ds.transform_features(tr_feature_dict, drop_old=False)
 
-    # ds.transform_features(tr_feature_dict)
-    # ds.scale_features_targets()
+    # Plot histograms of transformed features
+    features = ['enrlt_pct', 'log_enrlt_pct',
+                'enrlft_pct', 'logu_enrlft_pct',
+                'uagrntp', 'logu_uagrntp',
+                'grntwf2_pct', 'log_grntwf2_pct',
+                'grntof2_pct', 'log_grntof2_pct']
+    x_labels = ['Percent Enrolled', 'Log Percent Enrolled',
+                'Percent Full Time', 'Log (100 - Percent Full Time)',
+                'Percent Awarded Aid (any)',
+                'Log (100 - Percent Awarded Aid (any))',
+                'Percent With Family: 2016-17',
+                'Log Percent With Family: 2016-17',
+                'Percent Off Campus: 2016-17',
+                'Log Percent Off Campus: 2016-17']
+    ds.make_feature_histograms(features, x_labels=x_labels)
+    plt.show()
 
-    # Variance Inflation Factors
-    # # removed through recursive VIF:
-    # #       'iclevel', 'tribal', 'grnton2_pct', 'mt25', 'en75', 'mt75',
+    features = ['enrlt_pct', 'grntwf2_pct', 'grntof2_pct', 'uagrntp',
+                'enrlft_pct']
+    ds.drop_features(features)
+    ds.scale_features_targets()
 
-    # # Variance Inflation Factors
-    # vif = variance_inflation_factors(X_train_sc)
-    # print(f"VIF: {vif}")
+    # Perform fitting and predicting
+    lr.fit_train()
+    lr.predict()
 
-    # # Make histogram of the graduation rates
-    # x_labels = ['Grad. Rate: ' + l for l in labels]
-    # fig, ax = make_histograms(Y_train, x_labels=x_labels, colors=colors)
-    # plt.show()
+    # Calculate training and test scores
+    train_r2, test_r2 = lr.r_squared()
+    print("R^2 train: {:.4f}; R^2 test: {:.4f}".format(train_r2, test_r2))
 
-    # # Make histograms of the features
-    # fig, ax = make_histograms(X_train, x_labels=feat_cols)
-    # plt.show()
+    # Make histograms of the residuals
+    lr.plot_residuals()
+    plt.show()
 
-    # # Fit the training and test data
-    # reg = LinearRegression().fit(X_train_sc, Y_train_sc)
-    # X_test_sc = xsc.transform(X_test)
-    # Y_test_sc = ysc.transform(Y_test)
-
-    # for i, l in enumerate(labels):
-    #     print(l)
-    #     reg2 = LinearRegression().fit(X_train_sc, Y_train_sc[:, i])
-    #     print(f"Training R^2: {reg2.score(X_train_sc, Y_train_sc[:, i])}")
-    #     print(f"Test R^2: {reg2.score(X_test_sc, Y_test_sc[:, i])}")
+    # Make scale-location vs predicted values plots
     
-    # # Make histogram of the residuals
-    # Y_pred_sc = reg.predict(X_test_sc)
-    # Y_resid_sc = Y_test_sc - Y_pred_sc
-    # x_labels = ['Residuals: ' + l for l in labels]
-    # fig, ax = make_histograms(Y_resid_sc, x_labels=x_labels,
-    #                           colors=colors, center=0)
-    # plt.show()
-
     # # Plot scale-location plot vs predicted values
     # # Scale-location plot is sqrt(abs(resid)/std(residuals))
     # stdev_resid = np.sqrt(np.sum(Y_resid_sc**2, axis=0))
