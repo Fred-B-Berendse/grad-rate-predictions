@@ -239,14 +239,14 @@ Below are the residual sum of squares and the root mean squared error for each o
 
 | Target | Train R<sup>2</sup> | Test R<sup>2</sup> | Test RMSE |
 |--------|------|----------|---------|
-| 2 or More Races | 0.56 | 0.44 | 15.4 |
-| Asian | 0.49 | 0.41 | 17.2 |
-| Black | 0.59 | 0.52 | 15.4 |
-| Hispanic | 0.52 | 0.38 | 16.6 |
-| White | 0.70 | 0.60 | 10.9 |
-| Pell Grant | 0.67 | 0.55 | 12.5 |
-| Stafford Loan (SSL) | 0.57 | 0.46 | 14.1 |
-| Non-Recipient | 0.54 | 0.39 | 15.4 |
+| 2 or More Races | 0.59 | 0.44 | 15.5 |
+| Asian | 0.52 | 0.46 | 16.2 |
+| Black | 0.64 | 0.54 | 15.9 |
+| Hispanic | 0.56 | 0.30 | 18.4 |
+| White | 0.73 | 0.72 | 9.4 |
+| Pell Grant | 0.71 | 0.66 | 11.6 |
+| Stafford Loan (SSL) | 0.65 | 0.41 | 14.8 |
+| Non-Recipient | 0.56 | 0.47 | 13.9 |
 |||||
 
 The residuals of each regression all have very normal-like distributions, indicating that the normality condition of a linear regression has at least been loosely met.
@@ -271,21 +271,21 @@ If the coefficients of this model are reliable, then the model also indicates th
 
 ### Lasso Linear Regression
 
-In an attempt to limit the number of features, normalized targets and features were fitted with sklearn's `LassoLarsCV` model, which utilizes cross validation to optimize the shrinkage hyperparameter $\alpha$. For this model, five-fold validation was used with a maximum number of iterations of 500. Because the targets were pre-normalized, the option to fit the intercept was turned off. 
+In an attempt to limit the number of features, normalized targets and features were fitted with sklearn's `MultiTaskLassoCV` model, which utilizes cross validation to optimize the shrinkage hyperparameter $\alpha$. For this model, five-fold validation was used with a maximum number of iterations of 100. Because the targets were pre-normalized, the option to fit the intercept was turned off. 
 
-When the model was run on the training set, only 10 iterations were necessary to find that the best value of $\alpha$ was around 0.002, which indicates that the model is doing very little to punish large coefficient values. Below are the best-fit values of $\alpha$, as well as R<sup>2</sup> and RMSE for each target. Residuals and coefficients for each model are very similar to the ordinary regression model.
+When the model was run on the training set, only 13 iterations were necessary to find that the best value of $\alpha$ was around 0.08, which indicates that the model is doing very little to punish large coefficient values. Below are the best-fit values of $\alpha$, as well as R<sup>2</sup> and RMSE for each target. Residuals and coefficients for each model are very similar to the ordinary regression model.
 
-| Target | Train R<sup>2</sup> | Test R<sup>2</sup> | Test RMSE | Best $\alpha$ |
+| Target | Train R<sup>2</sup> | Test R<sup>2</sup> | Test RMSE |
 |--------|------|----------|---------|-----|
-| 2 or More Races | 0.56 | 0.44 | 26.2 | 0.001 |
-| Asian | 0.49 | 0.41 | 27.8 | 0.002 |
-| Black | 0.59 | 0.52 | 28.1 | 0.002 |
-| Hispanic | 0.52 | 0.38 | 27.4 | 0.002 |
-| White | 0.70 | 0.60 | 22.5 | 0.001 |
-| Pell Grant | 0.67 | 0.55 | 24.6 | 0.001 |
-| Stafford Loan (SSL) | 0.57 | 0.46 | 23.5 | 0.001 |
-| Non-Recipient | 0.54 | 0.39 | 26.2 | 0.002 |
-||||||
+| 2 or More Races | 0.57 | 0.49 | 14.9 |
+| Asian | 0.49 | 0.50 | 15.5 |
+| Black | 0.62 | 0.54 | 16.0 |
+| Hispanic | 0.53 | 0.39 | 17.1 |
+| White | 0.71 | 0.72 | 9.5 |
+| Pell Grant | 0.69 | 0.68 | 11.3 |
+| Stafford Loan (SSL) | 0.62 | 0.41 | 14.7 |
+| Non-Recipient | 0.54 | 0.46 | 14.1 |
+|||||
 
 ![img/lasso-residuals-histograms.png](img/lasso-residuals-histograms.png)*Residuals of Lasso regularized regression to normalized targets and features.*
 
