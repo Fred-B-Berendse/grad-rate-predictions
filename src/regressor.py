@@ -38,9 +38,15 @@ class Regressor(object):
         rsq_test = 1-rss_te/tss_te
         return rsq_train, rsq_test
 
-    def rmse(self):
+    def rmse(self, unscale=False):
         rss_tr, rss_te = self._rss()
-        return np.sqrt(rss_tr/len(rss_tr)), np.sqrt(rss_te/len(rss_te))
+        rmse_train = np.sqrt(rss_tr/self.dataset.Y_train.shape[0])
+        rmse_test = np.sqrt(rss_te/self.dataset.Y_test.shape[0])
+        if unscale:
+            scale = self.dataset.targets_scaler.scale_
+            rmse_train = rmse_train * scale
+            rmse_test = rmse_test * scale
+        return rmse_train, rmse_test
 
     def plot_residuals(self):
         '''
