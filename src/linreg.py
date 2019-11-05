@@ -66,10 +66,10 @@ class LinearRegressor(Regressor):
                      x_labels=self.dataset.target_labels,
                      cmap='seismic_r', center=0)
 
-    def log10_sm(x):
+    def log10_sm(self, x):
         return np.log10(x + 1)
 
-    def log10u_sm(x):
+    def log10u_sm(self, x):
         return np.log10(101-x)
 
 
@@ -95,16 +95,21 @@ if __name__ == "__main__":
     #              'mt25', 'mt75', 'uagrntp', 'upgrntp', 'npgrn2', 
     #              'grnton2_pct', 'grntof2_pct', 'grntwf2_pct']
 
-    # Surviving features after VIF elimination
-    feat_cols = np.array(['control_privnp', 'hloffer_postmc', 'hloffer_postbc',
-                          'hbcu_yes', 'locale_ctylrg', 'locale_ctysml',
-                          'locale_ctymid', 'locale_twndst', 'locale_rurfrg',
-                          'locale_twnrem', 'locale_submid', 'locale_subsml',
-                          'locale_twnfrg', 'locale_rurdst', 'locale_rurrem',
-                          'instsize_1to5k', 'instsize_5to10k',
-                          'instsize_10to20k', 'instsize_gt20k', 'longitud',
-                          'latitude', 'admssn_pct', 'enrlt_pct', 'enrlft_pct',
-                          'en25', 'uagrntp', 'upgrntp', 'npgrn2',
+    # # Surviving features after VIF elimination
+    # feat_cols = np.array(['control_privnp', 'hloffer_postmc', 'hloffer_postbc',
+    #                       'hbcu_yes', 'locale_ctylrg', 'locale_ctysml',
+    #                       'locale_ctymid', 'locale_twndst', 'locale_rurfrg',
+    #                       'locale_twnrem', 'locale_submid', 'locale_subsml',
+    #                       'locale_twnfrg', 'locale_rurdst', 'locale_rurrem',
+    #                       'instsize_1to5k', 'instsize_5to10k',
+    #                       'instsize_10to20k', 'instsize_gt20k', 'longitud',
+    #                       'latitude', 'admssn_pct', 'enrlt_pct', 'enrlft_pct',
+    #                       'en25', 'uagrntp', 'upgrntp', 'npgrn2',
+    #                       'grntof2_pct', 'grntwf2_pct'])
+
+    # Test of capstone 2 features
+    feat_cols = np.array(['longitud', 'latitude', 'admssn_pct', 'enrlt_pct',
+                          'enrlft_pct', 'en25', 'uagrntp', 'upgrntp',
                           'grntof2_pct', 'grntwf2_pct'])
 
     target_cols = np.array(['cstcball_pct_gr2mort', 'cstcball_pct_grasiat',
@@ -182,9 +187,14 @@ if __name__ == "__main__":
     plt.show()
 
     # Calculate RMSE for each target
-    train_rmse, test_rmse = lr.rmse()
-    for f, tr, te in zip(ds.target_labels, train_rmse, test_rmse):
-        print("{} - RMSE train: {:.4f}; RMSE test: {:.4f}".format(f, tr, te))
+    sc_train_rmse, sc_test_rmse = lr.rmse()
+    train_rmse, test_rmse = lr.rmse(unscale=True)
+    for i, f in enumerate(ds.target_labels):
+        print("{}".format(f))
+        formstr = "  Scaled train RMSE: {:.2f}; test RMSE: {:.2f}"
+        print(formstr.format(sc_train_rmse[i], sc_test_rmse[i]))
+        formstr = "  Unscaled train RMSE: {:.2f}; test RMSE: {:.2f}"
+        print(formstr.format(train_rmse[i], test_rmse[i]))
 
     # Plot heatmap of the coefficients
     lr.plot_coeffs_heatmap(normalized=True)
