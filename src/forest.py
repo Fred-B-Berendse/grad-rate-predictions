@@ -123,19 +123,21 @@ if __name__ == "__main__":
                             'cstcball_pct_grbkaat', 'cstcball_pct_grhispt',
                             'cstcball_pct_grwhitt', 'pgcmbac_pct',
                             'sscmbac_pct', 'nrcmbac_pct'])
-
     ds = Dataset.from_df(mdf, feat_cols, target_cols, test_size=0.25,
                          random_state=10)
-    ds.target_labels = np.array(['2+ Races', 'Asian', 'Black', 'Hispanic', 'White',
-                                 'Pell Grant', 'SSL', 'Non-Recipient'])
+    ds.target_labels = np.array(['2+ Races', 'Asian', 'Black', 'Hispanic',
+                                 'White', 'Pell Grant', 'SSL',
+                                 'Non-Recipient'])
     ds.target_colors = targets_color_dict()
 
     # Fit a baseline model first
     base_model = RandomForestRegressor(n_estimators=100, criterion='mse',
                                        min_samples_split=2, min_samples_leaf=1,
                                        min_weight_fraction_leaf=0.0,
-                                       max_features='sqrt', max_leaf_nodes=None,
-                                       min_impurity_decrease=0.0, bootstrap=True,
+                                       max_features='auto',
+                                       max_leaf_nodes=None,
+                                       min_impurity_decrease=0.0,
+                                       bootstrap=True,
                                        oob_score=False, n_jobs=-1,
                                        random_state=10, warm_start=False)
     rfbase = ForestRegressor(base_model, ds)
@@ -145,34 +147,39 @@ if __name__ == "__main__":
     rfbase.print_metrics()
     print("\n")
 
-    # Use Grid Search to find best hyperparameters
-    grid = {'n_estimators': [int(x) for x in np.linspace(100, 1000, 10)],
-            'criterion': ['mse', 'mae'],
-            'min_samples_split': [2, 5, 10, 20, 40],
-            'min_samples_leaf': [1, 2, 5],
-            'max_features': ['auto', 'sqrt']}
-    search_model = GridSearchCV(base_model, grid,
-                                scoring=None, n_jobs=-1, iid=False,
-                                refit=True, cv=5, verbose=2,
-                                pre_dispatch='2*n_jobs',
-                                error_score=np.nan,
-                                return_train_score=False)
-    rfsearch = ForestRegressor(search_model, ds)
-    rfsearch.fit_train()
-    print("Best Hyperparameters: ")
-    print(rfsearch.model.best_params_)
-    # Run 1: {'n_estimators': 600, 'min_samples_split': 10, 'min_samples_leaf': 5, 
-    #         'max_features': 'auto', 'criterion': 'mae'}
-    best_model = RandomForestRegressor(n_estimators=600, criterion='mae',
-                                       min_samples_split=10,
-                                       min_samples_leaf=5,
+    # # Use Grid Search to find best hyperparameters
+    # grid = {'n_estimators': [int(x) for x in np.linspace(100, 200, 11)],
+    #         'criterion': ['mse', 'mae'],
+    #         'min_samples_split': [int(x) for x in np.linspace(2, 10, 2)],
+    #         'max_features': ['auto', 'sqrt']}
+
+    # search_model = GridSearchCV(base_model, grid,
+    #                             scoring=None, n_jobs=-1, iid=False,
+    #                             refit=True, cv=5, verbose=2,
+    #                             pre_dispatch='2*n_jobs',
+    #                             error_score=np.nan,
+    #                             return_train_score=False)
+    # rfsearch = ForestRegressor(search_model, ds)
+    # rfsearch.fit_train()
+    # print("Best Hyperparameters: ")
+    # print(rfsearch.model.best_params_)
+
+    # Best model from grid search
+    # {'criterion': 'mse', 'max_features': 'sqrt',
+    #  'min_samples_split': 2, 'n_estimators': 160}
+
+    best_model = RandomForestRegressor(n_estimators=160, criterion='mse',
+                                       min_samples_split=2,
+                                       min_samples_leaf=1,
                                        min_weight_fraction_leaf=0.0,
-                                       max_features='auto',
+                                       max_features='sqrt',
                                        max_leaf_nodes=None,
                                        min_impurity_decrease=0.0,
                                        bootstrap=True,
                                        oob_score=False, n_jobs=-1,
                                        random_state=10, warm_start=False)
+    # best_model = search_model.best_estimator_
+
     rfbest = ForestRegressor(best_model, ds)
     rfbest.fit_train()
     rfbest.predict()
@@ -185,5 +192,9 @@ if __name__ == "__main__":
 
     top_features = ['en25', 'upgrntp', 'admssn_pct', 'grntwf2_pct']
     targets = ['2+ Races', 'Asian', 'Black', 'Hispanic', 'White']
+    rfbest.plot_partial_dependences(top_features, targets)
+    plt.show()
+
+    targets = ['Pell Grant', 'SSL', 'Non-Recipient']
     rfbest.plot_partial_dependences(top_features, targets)
     plt.show()
