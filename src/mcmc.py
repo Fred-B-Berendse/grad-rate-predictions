@@ -3,8 +3,6 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from dataset import Dataset
 from colors import targets_color_dict
-from sklearn.linear_model import LinearRegression
-from regressor import Regressor
 import pymc3 as pm
 plt.style.use('seaborn-whitegrid')
 plt.style.use('seaborn-poster')
