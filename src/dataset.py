@@ -187,6 +187,12 @@ class Dataset(object):
         make_histograms(self.X_train[:, indexes], x_labels=x_labels,
                         colors=colors, center=center)
 
+    def log10_sm(self, x):
+        return np.log10(x + 1)
+
+    def log10u_sm(self, x):
+        return np.log10(101-x)
+
 
 if __name__ == "__main__":
     mdf = pd.read_csv('data/ipeds_2017_cats_eda.csv')
