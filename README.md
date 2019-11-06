@@ -301,25 +301,24 @@ A random forest regression was the next model utilized to predict graduation rat
 
 | Hyperparameter | Baseline Model | Search Range | Best Model |
 |-----------|----------|------------|--------------|
-| number of trees | 100 | 100 - 1000 | 600 |
-| criterion for split | mean-squared error (MSE) | MSE, mean-absolute error (MAE) | MAE |
-| min samples for split | 2 | 2, 5, 10, 20 | 5 |
-| min samples per leaf | 1 | 1, 2, 5 | 2 | 
-| max features per split | sqrt(n_features) | n_features, sqrt(n_features) | sqrt(n_features) |
+| number of trees | 100 | 100 - 200 (steps of 10) | 160 |
+| criterion for split | mean-squared error (MSE) | MSE, mean-absolute error (MAE) | MSE |
+| min samples for split | 2 | 2, 4, 6, 8, 10 | 2 |
+| max features per split | n_features | n_features, sqrt(n_features) | sqrt(n_features) |
 ||||
 
 Both the baseline and best random forest models yield values of R<sup>2</sup> comparable to regression models. The random search for hyperparameters using cross validation did not significantly improve the model's performance. Interestingly, however, the root mean squared errors are lower for random forest than for the linear regression models. 
 
 | Target | R<sup>2</sup> | RMSE |
 |--------|----------------|------------|
-| Two or More Races | 0.44 (0.42) | 15.30 (15.72) |
-| Asian | 0.38 (0.38) | 17.26 (17.31) |
-| Black | 0.56 (0.55) | 14.92 (14.86) |
-| Hispanic | 0.36 (0.32) | 16.65 (17.23) |
-| White | 0.63 (0.62) | 10.52 (10.70) |
-| Pell Grant | 0.57 (0.55) | 12.33 (12.23) |
-| SSL | 0.48 (0.47) | 13.84 (14.21) |
-| Non-Recipient | 0.38 (0.37) | 15.34 (15.70) |
+| Two or More Races | 0.513 (0.464) | 14.55 (15.26) |
+| Asian | 0.506 (0.457) | 15.39 (16.13) |
+| Black | 0.619 (0.582) | 14.49 (15.18) |
+| Hispanic | 0.402 (0.393) | 16.96 (17.09) |
+| White | 0.724 (0.693) | 9.35 (9.85) |
+| Pell Grant | 0.694 (0.681) | 10.95 (11.17) |
+| SSL | 0.433 (0.332) | 14.46 (15.69) |
+| Non-Recipient | 0.428 (0.446) | 14.45 (14.22) |
 ||||
 *Performance metrics of the best random forest model selected by CV. Metrics of the baseline model are in parentheses.*
 
