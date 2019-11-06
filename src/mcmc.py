@@ -37,11 +37,29 @@ if __name__ == "__main__":
                                  'Non-Recipient'])
     ds.target_colors = targets_color_dict()
 
+
 with pm.Model() as model:
     alpha = pm.Normal('alpha', 0, 20)
-    beta = pm.Normal('beta', 0, 10, shape=2)
+    beta = pm.Normal('beta', 0, 10, shape=30)
     sigma = pm.HalfNormal('sigma', 10)
-    mu = alpha + beta[0]*ds.X_train[:, 25] + beta[1]*ds.X_train[:, 24]
+    mu = alpha + beta*ds.X_train
+    # mu = alpha + beta[0]*ds.X_train[:, 0] + beta[1]*ds.X_train[:, 1] + \
+    #      beta[2] * ds.X_train[:, 2] + beta[3] * ds.X_train[:, 3] + \
+    #      beta[4] * ds.X_train[:, 4] + beta[5] * ds.X_train[:, 5] + \
+    #      beta[6] * ds.X_train[:, 6] + beta[7] * ds.X_train[:, 7] + \
+    #      beta[8] * ds.X_train[:, 8] + beta[9] * ds.X_train[:, 9] + \
+    #      beta[10] * ds.X_train[:, 10] + beta[11] * ds.X_train[:, 11] + \
+    #      beta[12] * ds.X_train[:, 12] + beta[13] * ds.X_train[:, 13] + \
+    #      beta[14] * ds.X_train[:, 14] + beta[15] * ds.X_train[:, 15] + \
+    #      beta[16] * ds.X_train[:, 16] + beta[17] * ds.X_train[:, 17] + \
+    #      beta[18] * ds.X_train[:, 18] + beta[19] * ds.X_train[:, 19] + \
+    #      beta[20] * ds.X_train[:, 20] + beta[21] * ds.X_train[:, 21] + \
+    #      beta[22] * ds.X_train[:, 22] + beta[23] * ds.X_train[:, 23] + \
+    #      beta[24] * ds.X_train[:, 24] + beta[25] * ds.X_train[:, 25] + \
+    #      beta[26] * ds.X_train[:, 26] + beta[27] * ds.X_train[:, 27] + \
+    #      beta[28] * ds.X_train[:, 28] + beta[29] * ds.X_train[:, 29] + \
+    #      beta[30] * ds.X_train[:, 30]
+
     y_obs = pm.Normal('y_obs', mu=mu, sd=sigma, observed=ds.Y_train[:, 0])
 
 n_sample = 500
@@ -59,15 +77,3 @@ plt.show()
 
 with model:
     post_pred = pm.sample_posterior_predictive(trace, samples=500)
-
-# fig, ax = plt.subplots()
-# ax.scatter(df.mpg, df.horsepower, s=10)
-# ax.set_xlabel('mpg')
-# ax.set_ylabel('horsepower')
-# ax.set_title('Cars, with Distribution of Possible Linear Fits')
-# xlim = np.array(ax.get_xlim())
-# for i in range(0, n_sample, 10):
-#     ax.plot(xlim, trace[i]['beta0'] + trace[i]['beta1'] * xlim,
-#             c='k', lw=1, alpha=0.1)
-# ax.set_ylim(bottom=0)
-# ax.set_xlim(xlim)
