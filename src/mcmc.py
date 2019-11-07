@@ -113,7 +113,7 @@ class McmcRegressor(Regressor):
             y_pred.append(ppc['y'].mean(0).mean(0))
         self.train_predict = np.array(y_pred).T
 
-    def predict_test(self):
+    def get_prediction(self, X_arr):
         y_pred = []
         for target_label in self.dataset.target_labels:
             trace = self.traces[target_label]
@@ -121,12 +121,12 @@ class McmcRegressor(Regressor):
             parameters = pm.summary(trace[-n_traces:]).values
             intercept = parameters[0, 0]
             coeffs = parameters[1:-1, 0]
-            y_pred.append(intercept + np.dot(self.dataset.X_test, coeffs))
-        self.test_predict = np.array(y_pred).T
+            y_pred.append(intercept + np.dot(X_arr, coeffs))
+        return np.array(y_pred).T
 
     def predict(self, samples=500, size=50):
-        self.predict_train(samples=samples, size=size)
-        self.predict_test()
+        self.train_predict = self.get_prediction(self.dataset.X_train)
+        self.test_predict = self.get_prediction(self.dataset.X_test)
         self.train_residuals = self.dataset.Y_train - self.train_predict
         self.test_residuals = self.dataset.Y_test - self.test_predict
 
@@ -170,11 +170,19 @@ if __name__ == "__main__":
     mcmc.models, mcmc.traces = data['models'], data['traces']
 
     # Predict test and train data
-    mcmc.predict(samples=200, size=50)
-
-    # Compare two train prediction methods
+    mcmc.predict()
+    train_r2, test_r2 = mcmc.r_squared()
+    train_rmse, test_rmse = mcmc.rmse(unscale=False)
+    for i, f in enumerate(ds.target_labels):
+        print("{}".format(f))
+        formstr = "  train R^2: {:.3f}; test R^2: {:.3f}"
+        print(formstr.format(train_r2[i], test_r2[i]))
+        formstr = "  train RMSE: {:.2f}; test RMSE: {:.2f}"
+        print(formstr.format(train_rmse[i], test_rmse[i]))
 
     # Generate distribution of coefficients for each target
 
     # Generate distribution of predicted rate for a single observation
+
+    # Generate distribution of predicted rates for 10 random institutions
 
