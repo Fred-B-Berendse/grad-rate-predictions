@@ -1,5 +1,6 @@
 import numpy as np
-from plotting import make_histograms
+import math
+import matplotlib.pyplot as plt
 
 
 class Regressor(object):
@@ -57,6 +58,27 @@ class Regressor(object):
             mae_test = mae_test * scale
         return mae_train, mae_test
 
+    def make_histograms(self, X, bins=20, x_labels=None, colors=None,
+                        center=None):
+
+        nplots = X.shape[1]
+        nplotrows = math.ceil(nplots/2)
+        if colors is None:
+            # colors = cm.tab10(np.linspace(0, 1, nplots))
+            colors = np.repeat(None, nplots)
+        fig, ax = plt.subplots(nplotrows, 2, figsize=(12, 4*nplotrows))
+        for i in range(nplots):
+            axi = ax[i] if nplots <= 2 else ax[i//2, i % 2]
+            data = X[:, i]
+            axi.hist(data, bins=bins, color=colors[i], alpha=0.8)
+            if x_labels is not None:
+                axi.set_xlabel(x_labels[i])
+            if center is not None:
+                rng = max(center-min(data), max(data)-center)*1.05
+                axi.set_xlim(center-rng, center+rng)
+        plt.tight_layout()
+        return fig, ax
+
     def plot_residuals(self):
         '''
         graphs residuals vs predicted value for test data
@@ -64,6 +86,6 @@ class Regressor(object):
         x_labels = ['Residuals: ' + l for l in self.dataset.target_labels]
         colors = [self.dataset.target_colors[l]
                   for l in self.dataset.target_labels]
-        fig, ax = make_histograms(self.test_residuals,
-                                  x_labels=x_labels, center=0,
-                                  colors=colors)
+        fig, ax = self.make_histograms(self.test_residuals,
+                                       x_labels=x_labels, center=0,
+                                       colors=colors)

@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
+import math
 import matplotlib.pyplot as plt
-from plotting import make_histograms
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 from matplotlib import cm
@@ -184,8 +184,28 @@ class Dataset(object):
                                 center=None):
         indexes = [np.where(self.feature_labels == f) for f in features]
         indexes = np.array(indexes).flatten()
-        make_histograms(self.X_train[:, indexes], x_labels=x_labels,
-                        colors=colors, center=center)
+        self.make_histograms(self.X_train[:, indexes], x_labels=x_labels,
+                             colors=colors, center=center)
+
+    def make_histograms(self, X, bins=20, x_labels=None, colors=None,
+                        center=None):
+        nplots = X.shape[1]
+        nplotrows = math.ceil(nplots/2)
+        if colors is None:
+            # colors = cm.tab10(np.linspace(0, 1, nplots))
+            colors = np.repeat(None, nplots)
+        fig, ax = plt.subplots(nplotrows, 2, figsize=(12, 4*nplotrows))
+        for i in range(nplots):
+            axi = ax[i] if nplots <= 2 else ax[i//2, i % 2]
+            data = X[:, i]
+            axi.hist(data, bins=bins, color=colors[i], alpha=0.8)
+            if x_labels is not None:
+                axi.set_xlabel(x_labels[i])
+            if center is not None:
+                rng = max(center-min(data), max(data)-center)*1.05
+                axi.set_xlim(center-rng, center+rng)
+        plt.tight_layout()
+        return fig, ax
 
     def log10_sm(self, x):
         return np.log10(x + 1)
