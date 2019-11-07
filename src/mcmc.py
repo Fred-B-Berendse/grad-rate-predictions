@@ -16,6 +16,7 @@ class McmcRegressor(Regressor):
         self.model = pm.Model()
         self.dataset = dataset
         self.trace = None
+        self.var_means = None
         self.train_predict = None
         self.test_predict = None
         self.train_residuals = None
@@ -64,6 +65,35 @@ class McmcRegressor(Regressor):
         with open(filepath, 'wb') as buff:
             pickle.dump({'model': self.model, 'trace': self.trace}, buff)
 
+    def calc_var_means(self):
+        self.var_means = {}
+        for variable in self.trace.varnames:
+            mean = np.mean(self.trace[variable])
+            self.var_means[variable] = mean
+
+    def predict_one(self, X, get_range=False):
+
+        # Insert Intercept to labels and X values
+        X_obs = np.insert(X, 0, 1)
+        labels = np.insert(self.dataset.feature_labels, 0, 'Intercept')
+
+        # Align weights with labels
+        var_means = pd.DataFrame(self.var_means, index=[0])
+        var_means = var_means[labels]
+
+        # Calculate the mean for observation
+        mean_loc = np.dot(var_means, X_obs)[0]
+
+        if get_range:
+            sd_value = self.var_means['sd']
+            estimates = np.random.normal(loc=mean_loc, scale=sd_value,
+                                         size=1000)
+            hpd_lo = np.percentile(estimates, 2.5)
+            hpd_hi = np.percentile(estimates, 97.5)
+            return mean_loc, hpd_lo, hpd_hi
+        else:
+            return mean_loc
+
 
 if __name__ == "__main__":
 
@@ -97,17 +127,24 @@ if __name__ == "__main__":
     #     print(filepath)
     #     mcmc.pickle_model(filepath)
 
-    for target_label in ds.target_labels:
+    for j, target_label in enumerate(ds.target_labels):
         mcmc = McmcRegressor(ds)
         filepath = 'data/mcmc_' + mcmc.replace_bad_chars(target_label) + '.pkl'
         with open(filepath, 'rb') as buff:
             data = pickle.load(buff)
         mcmc.model, mcmc.trace = data['model'], data['trace']
 
-        summary = pm.summary(mcmc.trace).round(4)
-        print("Summary for {}".format(target_label))
-        print(summary)
+        # summary = pm.summary(mcmc.trace).round(4)
+        # print("Summary for {}".format(target_label))
+        # print(summary)
 
-        pm.plot_posterior(mcmc.trace, figsize=(14, 14))
+        mcmc.calc_var_means()
+        print("Prediction for {}".format(target_label))
+        test_obs = mcmc.dataset.X_test[0, :]
+        mn, lo, hi = mcmc.predict_one(test_obs, get_range=True)
+        print("  Predicted rate: {:.2f} ({:.2f} - {:.2f})".format(mn, lo, hi))
+        print("  Actual: {:.2f}".format(mcmc.dataset.Y_test[0, j]))
+        
+        # pm.plot_posterior(mcmc.trace, figsize=(14, 14))
 
     plt.show()
