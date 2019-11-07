@@ -170,26 +170,11 @@ if __name__ == "__main__":
     mcmc.models, mcmc.traces = data['models'], data['traces']
 
     # Predict test and train data
-    mcmc.predict_test()
+    mcmc.predict(samples=200, size=50)
 
-    # for j, target_label in enumerate(ds.target_labels):
-    #     mcmc = McmcRegressor(ds)
-    #     filepath = 'data/mcmc_' + mcmc.replace_bad_chars(target_label) + '.pkl'
-    #     with open(filepath, 'rb') as buff:
-    #         data = pickle.load(buff)
-    #     mcmc.model, mcmc.trace = data['model'], data['trace']
+    # Compare two train prediction methods
 
-    #     summary = pm.summary(mcmc.trace).round(4)
-    #     print("Summary for {}".format(target_label))
-    #     print(summary)
+    # Generate distribution of coefficients for each target
 
-    #     mcmc.calc_var_means()
-    #     print("Prediction for {}".format(target_label))
-    #     test_obs = mcmc.dataset.X_test[0, :]
-    #     mn, lo, hi = mcmc.predict_one(test_obs, get_range=True)
-    #     print("  Predicted rate: {:.0f} ({:.0f} - {:.0f})".format(mn, lo, hi))
-    #     print("  Actual: {:.0f}".format(mcmc.dataset.Y_test[0, j]))
-    #     Y_pred = mcmc.predict_all(mcmc.dataset.X_test)
-    #     pm.plot_posterior(mcmc.trace, figsize=(14, 14))
+    # Generate distribution of predicted rate for a single observation
 
-    # plt.show()
