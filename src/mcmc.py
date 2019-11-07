@@ -102,16 +102,16 @@ class McmcRegressor(Regressor):
         else:
             return mean_loc
 
-    def predict_train(self, samples=500, size=50):
-        y_pred = []
-        for target_label in self.dataset.target_labels:
-            trace = self.traces[target_label]
-            model = self.models[target_label]
-            n_traces = len(trace) // 2
-            ppc = pm.sample_ppc(trace[-n_traces:], samples=samples,
-                                model=model, size=size)
-            y_pred.append(ppc['y'].mean(0).mean(0))
-        self.train_predict = np.array(y_pred).T
+    # def predict_train(self, samples=500, size=50):
+    #     y_pred = []
+    #     for target_label in self.dataset.target_labels:
+    #         trace = self.traces[target_label]
+    #         model = self.models[target_label]
+    #         n_traces = len(trace) // 2
+    #         ppc = pm.sample_ppc(trace[-n_traces:], samples=samples,
+    #                             model=model, size=size)
+    #         y_pred.append(ppc['y'].mean(0).mean(0))
+    #     self.train_predict = np.array(y_pred).T
 
     def get_prediction(self, X_arr):
         y_pred = []
@@ -130,8 +130,49 @@ class McmcRegressor(Regressor):
         self.train_residuals = self.dataset.Y_train - self.train_predict
         self.test_residuals = self.dataset.Y_test - self.test_predict
 
+    def plot_coeff_distribution(self, target_label):
+        n_features = len(self.dataset.feature_labels)
+        trace = self.traces[target_label][-500:]
+        labels = trace.varnames[:-2]
+        pos = list(range(-1, -n_features-2, -1))
+
+        trace_vals = []
+        for la in labels:
+            trace_vals.append(trace[la])
+
+        fig = plt.figure(figsize=(8, 12))
+        ax = fig.add_subplot(111)
+        parts = ax.violinplot(trace_vals, pos, points=80, vert=False,
+                              widths=0.7, showmeans=True, showextrema=True,
+                              showmedians=False)
+
+        target_color = self.dataset.target_colors[target_label]
+        for pc in parts['bodies']:
+            pc.set_facecolor(target_color)
+            pc.set_color(target_color)
+            pc.set_edgecolor('black')
+        parts['cmeans'].set_color(target_color)
+        parts['cbars'].set_color(target_color)
+        parts['cmins'].set_color(target_color)
+        parts['cmaxes'].set_color(target_color)
+
+        ax.set_title('Coefficients: ' + target_label + ' Graduation Rate')
+        ax.set_xlabel('Coefficient')
+        ax.set_yticks(pos)
+        ax.set_yticklabels([la for la in labels])
+
+        ax.axvline(x=0, color='blue', linestyle='--')
+        plt.tight_layout()
+        return fig, ax
+
+    def plot_coeff_distributions(self):
+        for target_label in self.dataset.target_labels:
+            self.plot_coeff_distribution(target_label)
+
 
 if __name__ == "__main__":
+
+    build_model = False
 
     mdf = pd.read_csv('data/ipeds_2017_cats_eda.csv')
 
@@ -157,17 +198,18 @@ if __name__ == "__main__":
                        'uagrntp': ('logu_uagrntp', ds.log10u_sm),
                        'enrlt_pct': ('log_enrlt_pct', ds.log10_sm)}
     ds.transform_features(tr_feature_dict, drop_old=True)
+    ds.scale_features_targets()
 
     mcmc = McmcRegressor(ds)
 
-    # mcmc.build_models(draws=200, tune=100)
-    # filepath = 'data/mcmc.pkl'
-    # mcmc.pickle_model(filepath)
-
     filepath = 'data/mcmc.pkl'
-    with open(filepath, 'rb') as buff:
-        data = pickle.load(buff)
-    mcmc.models, mcmc.traces = data['models'], data['traces']
+    if build_model:
+        mcmc.build_models(draws=200, tune=100)
+        mcmc.pickle_model(filepath)
+    else:
+        with open(filepath, 'rb') as buff:
+            data = pickle.load(buff)
+        mcmc.models, mcmc.traces = data['models'], data['traces']
 
     # Predict test and train data
     mcmc.predict()
@@ -181,6 +223,8 @@ if __name__ == "__main__":
         print(formstr.format(train_rmse[i], test_rmse[i]))
 
     # Generate distribution of coefficients for each target
+    mcmc.plot_coeff_distributions()
+    plt.show()
 
     # Generate distribution of predicted rate for a single observation
 
