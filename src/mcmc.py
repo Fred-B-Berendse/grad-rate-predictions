@@ -102,9 +102,13 @@ class McmcRegressor(Regressor):
         else:
             return mean_loc
 
-    def predict_all(self, X_arr, get_range=False):
-        pass
-        # return np.apply_along_axis(self.predict_one, 1, X_arr)
+    def predict_target(self, target_label, samples=500, size=50):
+        trace = self.traces[target_label]
+        model = self.models[target_label]
+        n_traces = len(trace) // 2
+        ppc = pm.sample_ppc(trace[-n_traces:], samples=samples,
+                            model=model, size=size)
+        return ppc['y'].mean(0).mean(0).T
 
     def predict(self):
         pass
@@ -151,6 +155,8 @@ if __name__ == "__main__":
     with open(filepath, 'rb') as buff:
         data = pickle.load(buff)
     mcmc.models, mcmc.traces = data['models'], data['traces']
+
+    y_pred = mcmc.predict_target('Asian', samples=100, size=50)
 
     # for j, target_label in enumerate(ds.target_labels):
     #     mcmc = McmcRegressor(ds)
