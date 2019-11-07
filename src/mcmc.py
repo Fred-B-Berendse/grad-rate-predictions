@@ -114,7 +114,15 @@ class McmcRegressor(Regressor):
         self.train_predict = np.array(y_pred).T
 
     def predict_test(self):
-        pass
+        y_pred = []
+        for target_label in self.dataset.target_labels:
+            trace = self.traces[target_label]
+            n_traces = len(trace) // 2
+            parameters = pm.summary(trace[-n_traces:]).values
+            intercept = parameters[0, 0]
+            coeffs = parameters[1:-1, 0]
+            y_pred.append(intercept + np.dot(self.dataset.X_test, coeffs))
+        self.test_predict = np.array(y_pred).T
 
     def predict(self, samples=500, size=50):
         self.predict_train(samples=samples, size=size)
@@ -161,7 +169,8 @@ if __name__ == "__main__":
         data = pickle.load(buff)
     mcmc.models, mcmc.traces = data['models'], data['traces']
 
-    mcmc.predict_train(samples=100, size=50)
+    # Predict test and train data
+    mcmc.predict_test()
 
     # for j, target_label in enumerate(ds.target_labels):
     #     mcmc = McmcRegressor(ds)
@@ -183,4 +192,4 @@ if __name__ == "__main__":
     #     Y_pred = mcmc.predict_all(mcmc.dataset.X_test)
     #     pm.plot_posterior(mcmc.trace, figsize=(14, 14))
 
-    plt.show()
+    # plt.show()
