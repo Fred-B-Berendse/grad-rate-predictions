@@ -109,6 +109,5 @@ if __name__ == "__main__":
         print(summary)
 
         pm.plot_posterior(mcmc.trace, figsize=(14, 14))
-    
-    plt.show()
 
+    plt.show()
