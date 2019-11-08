@@ -273,7 +273,7 @@ If the coefficients of this model are reliable, then the model also indicates th
 
 In an attempt to limit the number of features, normalized targets and features were fitted with sklearn's `MultiTaskLassoCV` model, which utilizes cross validation to optimize the shrinkage hyperparameter $\alpha$. For this model, five-fold validation was used with a maximum number of iterations of 100. Because the targets were pre-normalized, the option to fit the intercept was turned off. 
 
-When the model was run on the training set, only 13 iterations were necessary to find that the best value of $\alpha$ was around 0.08, which indicates that the model is doing very little to punish large coefficient values. Below are the best-fit values of $\alpha$, as well as R<sup>2</sup> and RMSE for each target. Residuals and coefficients for each model are very similar to the ordinary regression model.
+When the model was run on the training set, only 13 iterations were necessary to find that the best value of $\alpha$ was around 0.08. Below are the best-fit values of $\alpha$, as well as R<sup>2</sup> and RMSE for each target. Residuals and coefficients for each model are very similar to the ordinary regression model.
 
 | Target | Train R<sup>2</sup> | Test R<sup>2</sup> | Test RMSE |
 |--------|------|----------|---------|-----|
@@ -297,7 +297,7 @@ When the model was run on the training set, only 13 iterations were necessary to
 
 ### Random Forest Regression
 
-A random forest regression was the next model utilized to predict graduation rates. A baseline model was first fitted to get a general idea of the performance of random forest model compared to the regression models. Once a baseline performance was established, sklearn's `RandomizedSearchCV` module was employed to do cross validation to search for the best combination of hyperparameters. The table below shows the range of values made available for the search. The number of iterations was set so that approximately 25% of the entire gridspace was searched. 
+A random forest regression was the next model utilized to predict graduation rates. A baseline model was first fitted to get a general idea of the performance of random forest model compared to the regression models. Once a baseline performance was established, sklearn's `GridSearchCV` module was employed to do cross validation to search for the best combination of hyperparameters. The table below shows the range of values made available for the search. 
 
 | Hyperparameter | Baseline Model | Search Range | Best Model |
 |-----------|----------|------------|--------------|
