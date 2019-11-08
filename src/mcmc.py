@@ -102,17 +102,6 @@ class McmcRegressor(Regressor):
         else:
             return mean_loc
 
-    # def predict_train(self, samples=500, size=50):
-    #     y_pred = []
-    #     for target_label in self.dataset.target_labels:
-    #         trace = self.traces[target_label]
-    #         model = self.models[target_label]
-    #         n_traces = len(trace) // 2
-    #         ppc = pm.sample_ppc(trace[-n_traces:], samples=samples,
-    #                             model=model, size=size)
-    #         y_pred.append(ppc['y'].mean(0).mean(0))
-    #     self.train_predict = np.array(y_pred).T
-
     def get_prediction(self, X_arr):
         y_pred = []
         for target_label in self.dataset.target_labels:
@@ -132,7 +121,8 @@ class McmcRegressor(Regressor):
 
     def plot_coeff_distribution(self, target_label):
         n_features = len(self.dataset.feature_labels)
-        trace = self.traces[target_label][-500:]
+        n_traces = len(self.traces[target_label]) // 2
+        trace = self.traces[target_label][-n_traces:]
         labels = trace.varnames[:-2]
         pos = list(range(-1, -n_features-2, -1))
 
@@ -169,6 +159,49 @@ class McmcRegressor(Regressor):
         for target_label in self.dataset.target_labels:
             self.plot_coeff_distribution(target_label)
 
+    def plot_rate_distribution(self, target_label, ax,
+                               pos=0, samples=500, size=50):
+        trace = self.traces[target_label]
+        n_traces = len(trace) // 2
+        model = self.models[target_label]
+        ppc = pm.sample_ppc(trace[-n_traces:], samples=samples,
+                            model=model, size=size)
+        y_pred_dist = ppc['y'].mean(1).mean(1)
+        parts = ax.violinplot(y_pred_dist, [pos], points=80, vert=False,
+                              widths=0.7, showmeans=True, showextrema=True,
+                              showmedians=False)
+
+        # Plot the actual mean graduation rate
+        idx = np.argwhere(self.dataset.target_labels == target_label)[0][0]
+        ax.scatter(self.dataset.Y_train[:, idx].mean(), pos,
+                   marker='D', label='Actual', color='black')
+
+        target_color = self.dataset.target_colors[target_label]
+        for pc in parts['bodies']:
+            pc.set_facecolor(target_color)
+            pc.set_color(target_color)
+            pc.set_edgecolor('black')
+        parts['cmeans'].set_color(target_color)
+        parts['cbars'].set_color(target_color)
+        parts['cmins'].set_color(target_color)
+        parts['cmaxes'].set_color(target_color)
+
+    def plot_rate_distributions(self, samples=500, size=50):
+        fig = plt.figure(figsize=(8, 12))
+        ax = fig.add_subplot(111)
+        n_targets = self.dataset.n_targets
+        pos = range(-1, -n_targets-1, -1)
+        for target_label, p in zip(self.dataset.target_labels, pos):
+            self.plot_rate_distribution(target_label, ax, pos=p,
+                                        samples=samples, size=size)
+
+        ax.set_title('Predicted Graduation Rates')
+        ax.set_xlabel('Graduation Rate')
+        ax.set_yticks(pos)
+        ax.set_yticklabels([la for la in self.dataset.target_labels])
+        handles, labels = ax.get_legend_handles_labels()
+        ax.legend([handles[0]], [labels[0]], loc='lower right')
+
 
 if __name__ == "__main__":
 
@@ -198,7 +231,7 @@ if __name__ == "__main__":
                        'uagrntp': ('logu_uagrntp', ds.log10u_sm),
                        'enrlt_pct': ('log_enrlt_pct', ds.log10_sm)}
     ds.transform_features(tr_feature_dict, drop_old=True)
-    ds.scale_features_targets()
+    # ds.scale_features_targets()
 
     mcmc = McmcRegressor(ds)
 
@@ -226,7 +259,6 @@ if __name__ == "__main__":
     mcmc.plot_coeff_distributions()
     plt.show()
 
-    # Generate distribution of predicted rate for a single observation
-
-    # Generate distribution of predicted rates for 10 random institutions
-
+    # Generate distributions of graduation rates for each target
+    mcmc.plot_rate_distributions()
+    plt.show()
