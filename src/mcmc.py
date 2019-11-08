@@ -173,7 +173,7 @@ class McmcRegressor(Regressor):
 
         # Plot the actual mean graduation rate
         idx = np.argwhere(self.dataset.target_labels == target_label)[0][0]
-        ax.scatter(self.dataset.Y_train[:, idx].mean(), pos,
+        ax.scatter(self.dataset.Y_test[:, idx].mean(), pos,
                    marker='D', label='Actual', color='black')
 
         target_color = self.dataset.target_colors[target_label]
@@ -186,16 +186,17 @@ class McmcRegressor(Regressor):
         parts['cmins'].set_color(target_color)
         parts['cmaxes'].set_color(target_color)
 
-    def plot_rate_distributions(self, samples=500, size=50):
+    def plot_rate_distributions(self, samples=500, size=50, scale=1.0):
         fig = plt.figure(figsize=(8, 12))
         ax = fig.add_subplot(111)
         n_targets = self.dataset.n_targets
         pos = range(-1, -n_targets-1, -1)
+        pos = [scale*p for p in pos]
         for target_label, p in zip(self.dataset.target_labels, pos):
             self.plot_rate_distribution(target_label, ax, pos=p,
                                         samples=samples, size=size)
 
-        ax.set_title('Predicted Graduation Rates')
+        ax.set_title('Predicted Mean Graduation Rates')
         ax.set_xlabel('Graduation Rate')
         ax.set_yticks(pos)
         ax.set_yticklabels([la for la in self.dataset.target_labels])
@@ -205,7 +206,7 @@ class McmcRegressor(Regressor):
 
 if __name__ == "__main__":
 
-    build_model = True
+    build_model = False
 
     mdf = pd.read_csv('data/ipeds_2017_cats_eda.csv')
 
@@ -254,10 +255,11 @@ if __name__ == "__main__":
         formstr = "  train RMSE: {:.2f}; test RMSE: {:.2f}"
         print(formstr.format(train_rmse[i], test_rmse[i]))
 
-    # Generate distribution of coefficients for each target
-    mcmc.plot_coeff_distributions()
-    plt.show()
+    # # Generate distribution of coefficients for each target
+    # mcmc.plot_coeff_distributions()
+    # plt.show()
 
     # Generate distributions of graduation rates for each target
-    mcmc.plot_rate_distributions()
+    mcmc.plot_rate_distributions(samples=500, size=50, scale=0.75)
+    plt.tight_layout()
     plt.show()
