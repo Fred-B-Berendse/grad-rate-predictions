@@ -119,18 +119,18 @@ class McmcRegressor(Regressor):
         self.train_residuals = self.dataset.Y_train - self.train_predict
         self.test_residuals = self.dataset.Y_test - self.test_predict
 
-    def plot_coeff_distribution(self, target_label):
+    def plot_coeff_distribution(self, target_label, scale=1.0):
         n_features = len(self.dataset.feature_labels)
         n_traces = len(self.traces[target_label]) // 2
         trace = self.traces[target_label][-n_traces:]
         labels = trace.varnames[:-2]
         pos = list(range(-1, -n_features-2, -1))
-
+        pos = [scale*p for p in pos]
         trace_vals = []
         for la in labels:
             trace_vals.append(trace[la])
 
-        fig = plt.figure(figsize=(8, 12))
+        fig = plt.figure(figsize=(10, 10))
         ax = fig.add_subplot(111)
         parts = ax.violinplot(trace_vals, pos, points=80, vert=False,
                               widths=0.7, showmeans=True, showextrema=True,
@@ -155,9 +155,9 @@ class McmcRegressor(Regressor):
         plt.tight_layout()
         return fig, ax
 
-    def plot_coeff_distributions(self):
+    def plot_coeff_distributions(self, scale=1.0):
         for target_label in self.dataset.target_labels:
-            self.plot_coeff_distribution(target_label)
+            self.plot_coeff_distribution(target_label, scale=scale)
 
     def plot_rate_distribution(self, target_label, ax,
                                pos=0, samples=500, size=50):
@@ -167,6 +167,7 @@ class McmcRegressor(Regressor):
         ppc = pm.sample_ppc(trace[-n_traces:], samples=samples,
                             model=model, size=size)
         y_pred_dist = ppc['y'].mean(1).mean(1)
+
         parts = ax.violinplot(y_pred_dist, [pos], points=80, vert=False,
                               widths=0.7, showmeans=True, showextrema=True,
                               showmedians=False)
@@ -201,7 +202,46 @@ class McmcRegressor(Regressor):
         ax.set_yticks(pos)
         ax.set_yticklabels([la for la in self.dataset.target_labels])
         handles, labels = ax.get_legend_handles_labels()
-        ax.legend([handles[0]], [labels[0]], loc='lower right')
+        ax.legend([handles[0]], [labels[0]], loc='lower left')
+
+    def calc_predict_distribution(self, X, target, size=500):
+
+        # Add an intercept term to the observation
+        test_obs = X.copy()
+        test_obs = np.insert(test_obs, 0, 1)
+
+        # Get the trace weights into a dictionary
+        trace = mcmc.traces[target]
+        var_dict = {}
+        for variable in trace.varnames:
+            tr = trace[variable]
+            var_dict[variable] = tr[-size:]
+        var_dict.pop('sd_log__')
+        var_dict.pop('sd')
+
+        # Results into a dataframe
+        var_weights = pd.DataFrame(var_dict)
+
+        # multiply weights by observations
+        return np.dot(var_weights, test_obs)
+
+    def plot_predict_distributions(self, X, Y_actual):
+
+        fig, ax = plt.subplots(4, 2, figsize=(12, 16))
+
+        for i, target in enumerate(mcmc.dataset.target_labels):
+
+            y_preds = self.calc_predict_distribution(X, target)
+
+            axi = ax[i // 2, i % 2]
+            axi.hist(y_preds, bins=20, density=True, alpha=0.8,
+                     color=mcmc.dataset.target_colors[target])
+            axi.axvline(Y_actual[i], color='black',
+                        linestyle='--', label='Actual')
+            axi.set_title(target)
+            axi.set_xlabel('Graduation Rate (%)')
+            axi.set_ylabel('Probability Density')
+            axi.legend(loc='best')
 
 
 if __name__ == "__main__":
@@ -256,10 +296,18 @@ if __name__ == "__main__":
         print(formstr.format(train_rmse[i], test_rmse[i]))
 
     # # Generate distribution of coefficients for each target
-    # mcmc.plot_coeff_distributions()
-    # plt.show()
+    mcmc.plot_coeff_distributions(scale=0.75)
+    plt.show()
 
     # Generate distributions of graduation rates for each target
     mcmc.plot_rate_distributions(samples=500, size=50, scale=0.75)
+    plt.tight_layout()
+    plt.show()
+
+    # Graph predictions for a member of the test dataset
+    obs_num = 25
+    Y_actual = mcmc.dataset.Y_test[obs_num]
+    X = mcmc.dataset.X_test[obs_num]
+    mcmc.plot_predict_distributions(X, Y_actual)
     plt.tight_layout()
     plt.show()
