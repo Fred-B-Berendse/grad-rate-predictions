@@ -131,7 +131,7 @@ if __name__ == "__main__":
 
         # Write preditions to PostgreSQL database
         print("Connecting to database")
-        ratesdb = Database(local=True)
+        ratesdb = Database(local=False)
         ratesdb.to_sql(model_df, 'lasso')
         sqlstr = 'ALTER TABLE lasso ADD PRIMARY KEY (unitid);'
         ratesdb.engine.execute(sqlstr)

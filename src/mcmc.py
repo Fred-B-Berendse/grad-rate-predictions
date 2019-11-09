@@ -257,7 +257,7 @@ class McmcRegressor(Regressor):
 if __name__ == "__main__":
 
     build_model = False
-    writetodb = False
+    writetodb = True
 
     mdf = pd.read_csv('data/ipeds_2017_cats.csv')
 
@@ -335,7 +335,7 @@ if __name__ == "__main__":
 
         # Write preditions to PostgreSQL database
         print("Connecting to database")
-        ratesdb = Database(local=True)
+        ratesdb = Database(local=False)
         ratesdb.to_sql(model_df, 'mcmc')
         sqlstr = 'ALTER TABLE mcmc ADD PRIMARY KEY (unitid);'
         ratesdb.engine.execute(sqlstr)

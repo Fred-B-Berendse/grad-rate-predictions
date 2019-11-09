@@ -282,7 +282,7 @@ if __name__ == "__main__":
     if writetodb: 
         # Write to PostgreSQL database
         print("Connecting to database")
-        ratesdb = Database(local=True)
+        ratesdb = Database(local=False)
         ratesdb.to_sql(tc.merged_table.df, 'institutions')
         sqlstr = 'ALTER TABLE institutions ADD PRIMARY KEY (unitid);'
         ratesdb.engine.execute(sqlstr)

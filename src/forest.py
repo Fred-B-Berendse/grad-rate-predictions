@@ -89,7 +89,7 @@ class ForestRegressor(Regressor):
 if __name__ == "__main__":
 
     do_grid_search = False
-    writetodb = False
+    writetodb = True
 
     mdf = pd.read_csv('data/ipeds_2017_cats.csv')
     mdf.drop(['applcn'], axis=1, inplace=True)
@@ -193,7 +193,7 @@ if __name__ == "__main__":
         for j, target in enumerate(ds.target_labels):
             trg = ds.validname(target)
             model_dict.update({trg+'_pred': rfbest.test_predict[:, j],
-                            trg+'_resid': rfbest.test_residuals[:, j]})
+                               trg+'_resid': rfbest.test_residuals[:, j]})
         model_df = pd.DataFrame(model_dict)
         model_df.set_index('unitid', inplace=True)
 
