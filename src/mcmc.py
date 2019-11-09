@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 from colors import targets_color_dict
 from dataset import Dataset
 from regressor import Regressor
-from theano import shared
+from database import Database
 plt.style.use('seaborn-whitegrid')
 plt.style.use('seaborn-poster')
 
@@ -257,9 +257,11 @@ class McmcRegressor(Regressor):
 if __name__ == "__main__":
 
     build_model = False
+    writetodb = False
 
-    mdf = pd.read_csv('data/ipeds_2017_cats_eda.csv')
+    mdf = pd.read_csv('data/ipeds_2017_cats.csv')
 
+    # create the dataset
     feat_cols = np.array(['en25', 'upgrntp', 'latitude', 'control_privnp',
                           'locale_twnrem', 'locale_rurrem', 'grntof2_pct',
                           'uagrntp', 'enrlt_pct'])
@@ -268,23 +270,22 @@ if __name__ == "__main__":
                             'cstcball_pct_grbkaat', 'cstcball_pct_grhispt',
                             'cstcball_pct_grwhitt', 'pgcmbac_pct',
                             'sscmbac_pct', 'nrcmbac_pct'])
-    # target_cols = np.array(['cstcball_pct_gr2mort', 'cstcball_pct_grasiat'])
 
     ds = Dataset.from_df(mdf, feat_cols, target_cols, test_size=0.25,
                          random_state=10)
     ds.target_labels = np.array(['2+ Races', 'Asian', 'Black', 'Hispanic',
                                  'White', 'Pell Grant', 'SSL',
                                  'Non-Recipient'])
-    # ds.target_labels = np.array(['2+ Races', 'Asian'])
     ds.target_colors = targets_color_dict()
 
+    # transform some features to be consistent with Lasso/OLS model
     tr_feature_dict = {'grntof2_pct': ('log_grntof2_pct', ds.log10_sm),
                        'uagrntp': ('logu_uagrntp', ds.log10u_sm),
                        'enrlt_pct': ('log_enrlt_pct', ds.log10_sm)}
     ds.transform_features(tr_feature_dict, drop_old=True)
 
+    # Build the model or read in model+traces
     mcmc = McmcRegressor(ds)
-
     filepath = 'data/mcmc.pkl'
     if build_model:
         mcmc.build_models(draws=2000, tune=500)
@@ -305,13 +306,12 @@ if __name__ == "__main__":
         formstr = "  train RMSE: {:.2f}; test RMSE: {:.2f}"
         print(formstr.format(train_rmse[i], test_rmse[i]))
 
-    # # Generate distribution of coefficients for each target
+    # Generate distribution of coefficients for each target
     mcmc.plot_coeff_distributions()
     plt.show()
 
     # Generate distributions of graduation rates for each target
     mcmc.plot_rate_distributions(samples=500)
-    # plt.tight_layout()
     plt.show()
 
     # Graph predictions for a member of the test dataset
@@ -321,3 +321,22 @@ if __name__ == "__main__":
     mcmc.plot_predict_distributions(X, Y_actual)
     plt.tight_layout()
     plt.show()
+
+    if writetodb: 
+
+        # Create dataframe to write test results to database
+        model_dict = {'unitid': mdf.loc[ds.idx_test, 'unitid'].values}
+        for j, target in enumerate(ds.target_labels):
+            trg = ds.validname(target)
+            model_dict.update({trg+'_pred': mcmc.test_predict[:, j],
+                            trg+'_resid': mcmc.test_residuals[:, j]})
+        model_df = pd.DataFrame(model_dict)
+        model_df.set_index('unitid', inplace=True)
+
+        # Write preditions to PostgreSQL database
+        print("Connecting to database")
+        ratesdb = Database(local=True)
+        ratesdb.to_sql(model_df, 'mcmc')
+        sqlstr = 'ALTER TABLE mcmc ADD PRIMARY KEY (unitid);'
+        ratesdb.engine.execute(sqlstr)
+        ratesdb.close()
