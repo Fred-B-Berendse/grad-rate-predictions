@@ -76,23 +76,6 @@ if __name__ == "__main__":
     mdf = pd.read_csv('data/ipeds_2017_cats_eda.csv')
     mdf.drop(['Unnamed: 0', 'applcn'], axis=1, inplace=True)
 
-    # Original features
-    # feat_cols = ['iclevel_2to4', 'iclevel_0to2', 'iclevel_na',
-    #              'control_public', 'control_privnp', 'control_na',
-    #              'hloffer_assoc', 'hloffer_doct', 'hloffer_bach',
-    #              'hloffer_mast', 'hloffer_2to4yr', 'hloffer_0to1yr',
-    #              'hloffer_postmc', 'hloffer_na', 'hloffer_postbc',
-    #              'hbcu_yes', 'tribal_yes', 'locale_ctylrg', 'locale_ctysml',
-    #              'locale_ctymid', 'locale_twndst', 'locale_rurfrg',
-    #              'locale_twnrem', 'locale_submid', 'locale_subsml',
-    #              'locale_twnfrg', 'locale_rurdst', 'locale_rurrem',
-    #              'locale_na', 'instsize_1to5k', 'instsize_5to10k',
-    #              'instsize_10to20k', 'instsize_na', 'instsize_gt20k',
-    #              'instsize_norpt', 'landgrnt_yes', 'longitud', 'latitude',
-    #              'admssn_pct', 'enrlt_pct', 'enrlft_pct', 'en25', 'en75',
-    #              'mt25', 'mt75', 'uagrntp', 'upgrntp', 'npgrn2', 
-    #              'grnton2_pct', 'grntof2_pct', 'grntwf2_pct']
-
     # Surviving features after VIF elimination
     feat_cols = np.array(['control_privnp', 'hloffer_postmc', 'hloffer_postbc',
                           'hbcu_yes', 'locale_ctylrg', 'locale_ctysml',
@@ -104,11 +87,6 @@ if __name__ == "__main__":
                           'latitude', 'admssn_pct', 'enrlt_pct', 'enrlft_pct',
                           'en25', 'uagrntp', 'upgrntp', 'npgrn2',
                           'grntof2_pct', 'grntwf2_pct'])
-
-    # # Test of capstone 2 features
-    # feat_cols = np.array(['longitud', 'latitude', 'admssn_pct', 'enrlt_pct',
-    #                       'enrlft_pct', 'en25', 'uagrntp', 'upgrntp',
-    #                       'grntof2_pct', 'grntwf2_pct'])
 
     target_cols = np.array(['cstcball_pct_gr2mort', 'cstcball_pct_grasiat',
                             'cstcball_pct_grbkaat', 'cstcball_pct_grhispt',
