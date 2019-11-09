@@ -2,18 +2,19 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 from sklearn.linear_model import MultiTaskLassoCV
-from colors import targets_color_dict, get_colors
+from colors import targets_color_dict
 from dataset import Dataset
 from linreg import LinearRegressor
 from joblib import dump
+from database import Database
 plt.style.use('seaborn-whitegrid')
 plt.style.use('seaborn-poster')
 
 
 if __name__ == "__main__":
 
-    mdf = pd.read_csv('data/ipeds_2017_cats_eda.csv')
-    mdf.drop(['Unnamed: 0', 'applcn'], axis=1, inplace=True)
+    mdf = pd.read_csv('data/ipeds_2017_cats.csv')
+    mdf.drop(['applcn'], axis=1, inplace=True)
 
     # Surviving features after VIF elimination
     feat_cols = np.array(['control_privnp', 'hloffer_postmc', 'hloffer_postbc',
@@ -110,3 +111,14 @@ if __name__ == "__main__":
     # Print statistics for each test
     print("alpha: {:.5f}".format(lr.model.alpha_))
     print("n_iterations: {}".format(lr.model.n_iter_))
+
+    # # Create dataframe to write to database
+    # modeldf = 
+
+    # # Write preditions to PostgreSQL database
+    # print("Connecting to database")
+    # ratesdb = Database(local=True)
+    # ratesdb.to_sql(tc.merged_table.df, 'lasso')
+    # sqlstr = 'ALTER TABLE institutions ADD PRIMARY KEY (unitid);'
+    # ratesdb.engine.execute(sqlstr)
+    # ratesdb.close()
