@@ -112,13 +112,23 @@ if __name__ == "__main__":
     print("alpha: {:.5f}".format(lr.model.alpha_))
     print("n_iterations: {}".format(lr.model.n_iter_))
 
-    # # Create dataframe to write to database
-    # modeldf = 
+    # Unscale predictions and residuals
+    lr.unscale_predictions()
+    lr.unscale_residuals()
 
-    # # Write preditions to PostgreSQL database
-    # print("Connecting to database")
-    # ratesdb = Database(local=True)
-    # ratesdb.to_sql(tc.merged_table.df, 'lasso')
-    # sqlstr = 'ALTER TABLE institutions ADD PRIMARY KEY (unitid);'
-    # ratesdb.engine.execute(sqlstr)
-    # ratesdb.close()
+    # Create dataframe to write test results to database
+    model_dict = {'unitid': mdf.loc[ds.idx_test, 'unitid'].values}
+    for j, target in enumerate(ds.target_labels):
+        trg = ds.validname(target)
+        model_dict.update({trg+'_pred': lr.test_predict[:, j],
+                           trg+'_resid': lr.test_residuals[:, j]})
+    model_df = pd.DataFrame(model_dict)
+    model_df.set_index('unitid', inplace=True)
+
+    # Write preditions to PostgreSQL database
+    print("Connecting to database")
+    ratesdb = Database(local=True)
+    ratesdb.to_sql(model_df, 'lasso')
+    sqlstr = 'ALTER TABLE lasso ADD PRIMARY KEY (unitid);'
+    ratesdb.engine.execute(sqlstr)
+    ratesdb.close()
