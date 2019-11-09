@@ -198,17 +198,17 @@ class McmcRegressor(Regressor):
         parts['cmaxes'].set_color(target_color)
 
     def plot_rate_distributions(self, samples=500):
-        fig = plt.figure(figsize=(8, 12))
+        fig = plt.figure(figsize=(12, 12))
         ax = fig.add_subplot(111)
         n_targets = self.dataset.n_targets
         pos = range(-1, -n_targets-1, -1)
-        pos = [0.75*p for p in pos]
+        pos = [0.55*p for p in pos]
         for target_label, p in zip(self.dataset.target_labels, pos):
             self.plot_rate_distribution(target_label, ax, pos=p,
                                         samples=samples)
 
         ax.set_title('Predicted Mean Graduation Rates')
-        ax.set_xlabel('Graduation Rate')
+        ax.set_xlabel('Graduation Rate (%)')
         ax.set_yticks(pos)
         ax.set_yticklabels([la for la in self.dataset.target_labels])
         handles, labels = ax.get_legend_handles_labels()
@@ -311,7 +311,7 @@ if __name__ == "__main__":
 
     # Generate distributions of graduation rates for each target
     mcmc.plot_rate_distributions(samples=500)
-    plt.tight_layout()
+    # plt.tight_layout()
     plt.show()
 
     # Graph predictions for a member of the test dataset
@@ -321,6 +321,3 @@ if __name__ == "__main__":
     mcmc.plot_predict_distributions(X, Y_actual)
     plt.tight_layout()
     plt.show()
-
-    target = 'Asian'
-    pred_means = mcmc.calc_predict_means_distribution(target, samples=500)
