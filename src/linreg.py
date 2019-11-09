@@ -6,6 +6,8 @@ from plotting import make_scatterplots, make_heatmap
 from colors import targets_color_dict, get_colors
 from dataset import Dataset
 from regressor import Regressor
+plt.style.use('seaborn-whitegrid')
+plt.style.use('seaborn-poster')
 
 
 class LinearRegressor(Regressor):
@@ -49,7 +51,7 @@ class LinearRegressor(Regressor):
                                     y_labels=y_labels,
                                     colors=colors)
 
-    def plot_coeffs_heatmap(self, normalized=False):
+    def plot_coeffs_heatmap(self, normalized=False, min_coeff=None, clim=None):
 
         X = self.model.coef_
         X = np.insert(X, 0, np.zeros(X.shape[0]), axis=1)
@@ -60,9 +62,16 @@ class LinearRegressor(Regressor):
             X[:, 0] = self.dataset.targets_scaler.mean_
 
         y_labels = np.insert(self.dataset.feature_labels, 0, 'Intercept')
+
+        if min_coeff is not None:
+            X_means = np.abs(X).mean(axis=0)
+            idx = X_means > min_coeff
+            X = X[:, idx]
+            y_labels = y_labels[idx]
+
         make_heatmap(X.T, y_labels=y_labels,
                      x_labels=self.dataset.target_labels,
-                     cmap='seismic_r', center=0)
+                     cmap='seismic_r', center=0, clim=clim)
 
     def log10_sm(self, x):
         return np.log10(x + 1)

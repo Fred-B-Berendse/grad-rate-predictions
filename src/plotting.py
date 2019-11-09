@@ -55,11 +55,17 @@ def make_scatterplots(X, Y, x_labels=None, y_labels=None, colors=None,
 
 
 def make_heatmap(arr, x_labels=None, y_labels=None, cmap='tab10',
-                 center=None):
+                 center=None, clim=None):
+
+    if clim is None:
+        vmin = None
+        vmax = None
+    else:
+        vmin, vmax = clim
 
     ax = sns.heatmap(arr, xticklabels=x_labels, yticklabels=y_labels,
                      cmap=cmap, annot=True, center=0, annot_kws={"size": 16},
-                     fmt='.2f')
+                     fmt='.2f', vmin=vmin, vmax=vmax)
     return ax
 
 

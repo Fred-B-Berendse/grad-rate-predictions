@@ -6,6 +6,9 @@ from colors import targets_color_dict, get_colors
 from dataset import Dataset
 from linreg import LinearRegressor
 from joblib import dump
+plt.style.use('seaborn-whitegrid')
+plt.style.use('seaborn-poster')
+
 
 if __name__ == "__main__":
 
@@ -100,6 +103,8 @@ if __name__ == "__main__":
     lr.plot_coeffs_heatmap(normalized=True)
     plt.show()
     lr.plot_coeffs_heatmap(normalized=False)
+    plt.show()
+    lr.plot_coeffs_heatmap(normalized=False, min_coeff=0.5, clim=(-3, 3))
     plt.show()
 
     # Print statistics for each test
