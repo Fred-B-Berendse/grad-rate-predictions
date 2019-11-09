@@ -9,6 +9,7 @@ from copy import deepcopy
 from colors import targets_color_dict
 from dataset import Dataset
 from joblib import dump, load
+from database import Database
 plt.style.use('seaborn-whitegrid')
 plt.style.use('seaborn-poster')
 
@@ -88,9 +89,10 @@ class ForestRegressor(Regressor):
 if __name__ == "__main__":
 
     do_grid_search = False
+    writetodb = False
 
-    mdf = pd.read_csv('data/ipeds_2017_cats_eda.csv')
-    mdf.drop(['Unnamed: 0', 'applcn'], axis=1, inplace=True)
+    mdf = pd.read_csv('data/ipeds_2017_cats.csv')
+    mdf.drop(['applcn'], axis=1, inplace=True)
 
     # Surviving features after VIF elimination
     feat_cols = np.array(['control_privnp', 'hloffer_postmc', 'hloffer_postbc',
@@ -132,9 +134,8 @@ if __name__ == "__main__":
     rfbase.print_metrics()
     print("\n")
 
+    # Use Grid Search to find best hyperparameters
     if do_grid_search:
-
-        # Use Grid Search to find best hyperparameters
         grid = {'n_estimators': [int(x) for x in np.linspace(100, 200, 11)],
                 'criterion': ['mse', 'mae'],
                 'min_samples_split': [int(x) for x in np.linspace(2, 10, 2)],
@@ -151,11 +152,14 @@ if __name__ == "__main__":
         print("Best Hyperparameters: ")
         print(rfsearch.model.best_params_)
         best_model = rfsearch.model.best_estimator_
+
         # Use joblib instead of pickle to save the model
         dump(best_model, 'data/forest.joblib')
+    
     else:
         best_model = load('data/forest.joblib')
 
+    # Train, predict, and print metrics for best model
     rfbest = ForestRegressor(best_model, ds)
     rfbest.fit_train()
     rfbest.predict()
@@ -163,9 +167,11 @@ if __name__ == "__main__":
     rfbest.print_metrics()
     print("\n")
 
+    # Plot feature importances
     rfbest.plot_feature_importances(n_features=8)
     plt.show()
 
+    # Plot partial dependence for top features
     desc_dict = {'en25': 'English 25th Percentile', 
                  'upgrntp': 'Percent Receiving Pell Grant',
                  'admssn_pct': 'Percent of Applicants Admitted',
@@ -179,3 +185,22 @@ if __name__ == "__main__":
     targets = ['Pell Grant', 'SSL', 'Non-Recipient']
     rfbest.plot_partial_dependences(top_features, targets, desc_dict=desc_dict)
     plt.show()
+
+    if writetodb:
+        
+        # Create dataframe to write test results to database
+        model_dict = {'unitid': mdf.loc[ds.idx_test, 'unitid'].values}
+        for j, target in enumerate(ds.target_labels):
+            trg = ds.validname(target)
+            model_dict.update({trg+'_pred': rfbest.test_predict[:, j],
+                            trg+'_resid': rfbest.test_residuals[:, j]})
+        model_df = pd.DataFrame(model_dict)
+        model_df.set_index('unitid', inplace=True)
+
+        # Write preditions to PostgreSQL database
+        print("Connecting to database")
+        ratesdb = Database(local=True)
+        ratesdb.to_sql(model_df, 'forest')
+        sqlstr = 'ALTER TABLE forest ADD PRIMARY KEY (unitid);'
+        ratesdb.engine.execute(sqlstr)
+        ratesdb.close()
