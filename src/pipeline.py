@@ -125,6 +125,8 @@ def standardize(table, cols, avg_col=None):
 
 if __name__ == "__main__":
 
+    writetodb = False
+
     exclude_list = [it.data_not_usable,
                     it.do_not_know,
                     it.left_blank,
@@ -277,10 +279,11 @@ if __name__ == "__main__":
     tc.merged_table.df.set_index('unitid', inplace=True)
     tc.merged_table.write_csv('data/ipeds_2017_cats.csv')
 
-    # Write to PostgreSQL database
-    print("Connecting to database")
-    ratesdb = Database(local=True)
-    ratesdb.to_sql(tc.merged_table.df, 'institutions')
-    sqlstr = 'ALTER TABLE institutions ADD PRIMARY KEY (unitid);'
-    ratesdb.engine.execute(sqlstr)
-    ratesdb.close()
+    if writetodb: 
+        # Write to PostgreSQL database
+        print("Connecting to database")
+        ratesdb = Database(local=True)
+        ratesdb.to_sql(tc.merged_table.df, 'institutions')
+        sqlstr = 'ALTER TABLE institutions ADD PRIMARY KEY (unitid);'
+        ratesdb.engine.execute(sqlstr)
+        ratesdb.close()
