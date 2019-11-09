@@ -64,7 +64,6 @@ class Regressor(object):
         nplots = X.shape[1]
         nplotrows = math.ceil(nplots/2)
         if colors is None:
-            # colors = cm.tab10(np.linspace(0, 1, nplots))
             colors = np.repeat(None, nplots)
         fig, ax = plt.subplots(nplotrows, 2, figsize=(12, 4*nplotrows))
         for i in range(nplots):
@@ -89,3 +88,11 @@ class Regressor(object):
         fig, ax = self.make_histograms(self.test_residuals,
                                        x_labels=x_labels, center=0,
                                        colors=colors)
+
+    def unscale_predictions(self):
+        scaler = self.dataset.targets_scaler
+        self.test_predict = scaler.inverse_transform(self.test_predict)
+
+    def unscale_residuals(self):
+        scaler = self.dataset.targets_scaler
+        self.test_residuals = self.test_residuals * scaler.scale_
