@@ -13,6 +13,8 @@ plt.style.use('seaborn-poster')
 
 if __name__ == "__main__":
 
+    writetodb = False
+
     mdf = pd.read_csv('data/ipeds_2017_cats.csv')
     mdf.drop(['applcn'], axis=1, inplace=True)
 
@@ -116,19 +118,21 @@ if __name__ == "__main__":
     lr.unscale_predictions()
     lr.unscale_residuals()
 
-    # Create dataframe to write test results to database
-    model_dict = {'unitid': mdf.loc[ds.idx_test, 'unitid'].values}
-    for j, target in enumerate(ds.target_labels):
-        trg = ds.validname(target)
-        model_dict.update({trg+'_pred': lr.test_predict[:, j],
-                           trg+'_resid': lr.test_residuals[:, j]})
-    model_df = pd.DataFrame(model_dict)
-    model_df.set_index('unitid', inplace=True)
+    if writetodb: 
 
-    # Write preditions to PostgreSQL database
-    print("Connecting to database")
-    ratesdb = Database(local=True)
-    ratesdb.to_sql(model_df, 'lasso')
-    sqlstr = 'ALTER TABLE lasso ADD PRIMARY KEY (unitid);'
-    ratesdb.engine.execute(sqlstr)
-    ratesdb.close()
+        # Create dataframe to write test results to database
+        model_dict = {'unitid': mdf.loc[ds.idx_test, 'unitid'].values}
+        for j, target in enumerate(ds.target_labels):
+            trg = ds.validname(target)
+            model_dict.update({trg+'_pred': lr.test_predict[:, j],
+                            trg+'_resid': lr.test_residuals[:, j]})
+        model_df = pd.DataFrame(model_dict)
+        model_df.set_index('unitid', inplace=True)
+
+        # Write preditions to PostgreSQL database
+        print("Connecting to database")
+        ratesdb = Database(local=True)
+        ratesdb.to_sql(model_df, 'lasso')
+        sqlstr = 'ALTER TABLE lasso ADD PRIMARY KEY (unitid);'
+        ratesdb.engine.execute(sqlstr)
+        ratesdb.close()
