@@ -6,6 +6,7 @@ import matplotlib.pyplot as plt
 from colors import targets_color_dict
 from dataset import Dataset
 from regressor import Regressor
+from theano import shared
 plt.style.use('seaborn-whitegrid')
 plt.style.use('seaborn-poster')
 
@@ -113,19 +114,19 @@ class McmcRegressor(Regressor):
             y_pred.append(intercept + np.dot(X_arr, coeffs))
         return np.array(y_pred).T
 
-    def predict(self, samples=500, size=50):
+    def predict(self):
         self.train_predict = self.get_prediction(self.dataset.X_train)
         self.test_predict = self.get_prediction(self.dataset.X_test)
         self.train_residuals = self.dataset.Y_train - self.train_predict
         self.test_residuals = self.dataset.Y_test - self.test_predict
 
-    def plot_coeff_distribution(self, target_label, scale=1.0):
+    def plot_coeff_distribution(self, target_label):
         n_features = len(self.dataset.feature_labels)
         n_traces = len(self.traces[target_label]) // 2
         trace = self.traces[target_label][-n_traces:]
         labels = trace.varnames[:-2]
         pos = list(range(-1, -n_features-2, -1))
-        pos = [scale*p for p in pos]
+        pos = [0.75*p for p in pos]
         trace_vals = []
         for la in labels:
             trace_vals.append(trace[la])
@@ -155,18 +156,27 @@ class McmcRegressor(Regressor):
         plt.tight_layout()
         return fig, ax
 
-    def plot_coeff_distributions(self, scale=1.0):
+    def plot_coeff_distributions(self):
         for target_label in self.dataset.target_labels:
-            self.plot_coeff_distribution(target_label, scale=scale)
+            self.plot_coeff_distribution(target_label)
+
+    def calc_predict_means_distribution(self, target_label, samples=500):
+        # Calculates the distribution of mean graduation rates across all
+        # institutions
+        all_preds = []
+        for i in range(mcmc.dataset.n_test):
+            X = mcmc.dataset.X_test[i]
+            y_pred = mcmc.calc_predict_distribution(X, target_label,
+                                                    samples=samples)
+            all_preds.append(y_pred)
+        all_preds = np.array(all_preds)
+        return np.mean(all_preds, axis=0)
 
     def plot_rate_distribution(self, target_label, ax,
-                               pos=0, samples=500, size=50):
-        trace = self.traces[target_label]
-        n_traces = len(trace) // 2
-        model = self.models[target_label]
-        ppc = pm.sample_ppc(trace[-n_traces:], samples=samples,
-                            model=model, size=size)
-        y_pred_dist = ppc['y'].mean(1).mean(1)
+                               pos=0, samples=500):
+
+        y_pred_dist = self.calc_predict_means_distribution(target_label,
+                                                           samples=samples)
 
         parts = ax.violinplot(y_pred_dist, [pos], points=80, vert=False,
                               widths=0.7, showmeans=True, showextrema=True,
@@ -187,15 +197,15 @@ class McmcRegressor(Regressor):
         parts['cmins'].set_color(target_color)
         parts['cmaxes'].set_color(target_color)
 
-    def plot_rate_distributions(self, samples=500, size=50, scale=1.0):
+    def plot_rate_distributions(self, samples=500):
         fig = plt.figure(figsize=(8, 12))
         ax = fig.add_subplot(111)
         n_targets = self.dataset.n_targets
         pos = range(-1, -n_targets-1, -1)
-        pos = [scale*p for p in pos]
+        pos = [0.75*p for p in pos]
         for target_label, p in zip(self.dataset.target_labels, pos):
             self.plot_rate_distribution(target_label, ax, pos=p,
-                                        samples=samples, size=size)
+                                        samples=samples)
 
         ax.set_title('Predicted Mean Graduation Rates')
         ax.set_xlabel('Graduation Rate')
@@ -204,7 +214,7 @@ class McmcRegressor(Regressor):
         handles, labels = ax.get_legend_handles_labels()
         ax.legend([handles[0]], [labels[0]], loc='lower left')
 
-    def calc_predict_distribution(self, X, target, size=500):
+    def calc_predict_distribution(self, X, target, samples=500):
 
         # Add an intercept term to the observation
         test_obs = X.copy()
@@ -215,7 +225,7 @@ class McmcRegressor(Regressor):
         var_dict = {}
         for variable in trace.varnames:
             tr = trace[variable]
-            var_dict[variable] = tr[-size:]
+            var_dict[variable] = tr[-samples:]
         var_dict.pop('sd_log__')
         var_dict.pop('sd')
 
@@ -296,11 +306,11 @@ if __name__ == "__main__":
         print(formstr.format(train_rmse[i], test_rmse[i]))
 
     # # Generate distribution of coefficients for each target
-    mcmc.plot_coeff_distributions(scale=0.75)
+    mcmc.plot_coeff_distributions()
     plt.show()
 
     # Generate distributions of graduation rates for each target
-    mcmc.plot_rate_distributions(samples=500, size=50, scale=0.75)
+    mcmc.plot_rate_distributions(samples=500)
     plt.tight_layout()
     plt.show()
 
@@ -311,3 +321,6 @@ if __name__ == "__main__":
     mcmc.plot_predict_distributions(X, Y_actual)
     plt.tight_layout()
     plt.show()
+
+    target = 'Asian'
+    pred_means = mcmc.calc_predict_means_distribution(target, samples=500)
