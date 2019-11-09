@@ -20,8 +20,11 @@ class Dataset(object):
         if X.shape[0] != Y.shape[0]:
             raise ValueError('Dimensions of X and Y do not match')
 
-        self.X_train, self.X_test, self.Y_train, self.Y_test = \
-            train_test_split(X, Y, test_size=test_size,
+        idx = np.array(range(X.shape[0]))
+        self.X_train, self.X_test, \
+            self.Y_train, self.Y_test, \
+            self.idx_train, self.idx_test = \
+            train_test_split(X, Y, idx, test_size=test_size,
                              random_state=random_state)
         self.n_features = self.X_train.shape[1]
         self.n_targets = self.Y_train.shape[1]
