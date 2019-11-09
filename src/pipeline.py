@@ -1,11 +1,11 @@
 import numpy as np
 import sys
+from database import Database
 sys.path.append('/home/fberendse/git/galvanize/work/capstone_1/src/')
 from imputationtypes import ImputationTypes as it
 from cohorttypes import CohortTypes as ct
 from ipedscollection import IpedsCollection
 from sklearn.preprocessing import StandardScaler 
-# from ipedsdatabase import IpedsDatabase
 
 
 def grad_make_pcts(df, class_sum, classes, dropna=False, 
@@ -259,16 +259,28 @@ if __name__ == "__main__":
     sfa.make_pct_columns(partials, totals, replace=True, dropna=False)
     print(tc.get_row_counts())
 
+    # Merge the tables
     tc.merge_all()
     mdf = tc.merged_table.df
     mdf.dropna(how='any', inplace=True)
     print(mdf.info(max_cols=150))
 
+    # Prettify column names
     new_col_names = []
     for c in mdf.columns:
         new_name = c[0]+'_'+c[1] if type(c) is tuple else c
         new_col_names.append(new_name)
     mdf.columns = new_col_names
+
+    # Write to csv file
     print("writing to file")
-    tc.merged_table.df.set_index('unitid')
-    tc.merged_table.write_csv('data/ipeds_2017_cats_eda.csv')
+    tc.merged_table.df.set_index('unitid', inplace=True)
+    tc.merged_table.write_csv('data/ipeds_2017_cats.csv')
+
+    # Write to PostgreSQL database
+    print("Connecting to database")
+    ratesdb = Database(local=True)
+    ratesdb.to_sql(tc.merged_table.df, 'institutions')
+    sqlstr = 'ALTER TABLE institutions ADD PRIMARY KEY (unitid);'
+    ratesdb.engine.execute(sqlstr)
+    ratesdb.close()
