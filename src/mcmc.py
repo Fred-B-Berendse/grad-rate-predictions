@@ -286,7 +286,7 @@ if __name__ == "__main__":
 
     # Build the model or read in model+traces
     mcmc = McmcRegressor(ds)
-    filepath = 'data/mcmc.pkl'
+    filepath = 'models/mcmc.pkl'
     if build_model:
         mcmc.build_models(draws=2000, tune=500)
         mcmc.pickle_model(filepath)
@@ -329,7 +329,7 @@ if __name__ == "__main__":
         for j, target in enumerate(ds.target_labels):
             trg = ds.validname(target)
             model_dict.update({trg+'_pred': mcmc.test_predict[:, j],
-                            trg+'_resid': mcmc.test_residuals[:, j]})
+                               trg+'_resid': mcmc.test_residuals[:, j]})
         model_df = pd.DataFrame(model_dict)
         model_df.set_index('unitid', inplace=True)
 

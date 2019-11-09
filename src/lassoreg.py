@@ -79,7 +79,7 @@ if __name__ == "__main__":
     lr.predict()
 
     # Use joblib to save the model
-    dump(lr.model, 'data/lassoreg.joblib') 
+    dump(lr.model, 'models/lassoreg.joblib') 
 
     # Make histograms of the residuals
     lr.plot_residuals()
@@ -118,14 +118,14 @@ if __name__ == "__main__":
     lr.unscale_predictions()
     lr.unscale_residuals()
 
-    if writetodb: 
+    if writetodb:
 
         # Create dataframe to write test results to database
         model_dict = {'unitid': mdf.loc[ds.idx_test, 'unitid'].values}
         for j, target in enumerate(ds.target_labels):
             trg = ds.validname(target)
             model_dict.update({trg+'_pred': lr.test_predict[:, j],
-                            trg+'_resid': lr.test_residuals[:, j]})
+                               trg+'_resid': lr.test_residuals[:, j]})
         model_df = pd.DataFrame(model_dict)
         model_df.set_index('unitid', inplace=True)
 

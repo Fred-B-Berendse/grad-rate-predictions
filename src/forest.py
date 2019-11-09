@@ -154,10 +154,10 @@ if __name__ == "__main__":
         best_model = rfsearch.model.best_estimator_
 
         # Use joblib instead of pickle to save the model
-        dump(best_model, 'data/forest.joblib')
+        dump(best_model, 'models/forest.joblib')
     
     else:
-        best_model = load('data/forest.joblib')
+        best_model = load('models/forest.joblib')
 
     # Train, predict, and print metrics for best model
     rfbest = ForestRegressor(best_model, ds)
