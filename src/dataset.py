@@ -216,10 +216,16 @@ class Dataset(object):
     def log10u_sm(self, x):
         return np.log10(101-x)
 
+    @staticmethod
+    def validname(name):
+        res = name.replace('-', '_').replace('+', 'plus')
+        res = res.replace(' ', '_').replace('2', 'two')
+        return res.lower()
+
 
 if __name__ == "__main__":
-    mdf = pd.read_csv('data/ipeds_2017_cats_eda.csv')
-    mdf.drop(['Unnamed: 0', 'applcn'], axis=1, inplace=True)
+    mdf = pd.read_csv('data/ipeds_2017_cats.csv')
+    mdf.drop(['applcn'], axis=1, inplace=True)
 
     feat_cols = np.array(['control_privnp', 'hloffer_postmc', 'hloffer_postbc',
                           'hbcu_yes', 'locale_ctylrg', 'locale_ctysml',
