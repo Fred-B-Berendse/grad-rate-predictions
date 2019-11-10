@@ -3,6 +3,7 @@ import sqlalchemy as db
 from sqlalchemy import text
 import pandas as pd
 from formatdf import collapse_all_onehots, get_features_df
+from formatdf import get_targets_df
 
 
 class Database(object):
@@ -59,4 +60,5 @@ if __name__ == "__main__":
 
     collapse_all_onehots(inst_df)
     features_df = get_features_df(inst_df)
+    targets_df = get_targets_df(inst_df)
 

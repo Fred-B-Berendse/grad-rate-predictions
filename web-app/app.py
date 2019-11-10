@@ -1,5 +1,6 @@
 from flask import Flask, render_template, request
 from formatdf import collapse_all_onehots, get_features_df
+from formatdf import get_targets_df
 from database import Database
 # from model import Model
 
@@ -29,14 +30,18 @@ def visualize():
     inst_df = ratesdb.from_sql_query(sql_str, unitid=unitid)
     collapse_all_onehots(inst_df)
     features_df = get_features_df(inst_df)
+    targets_df = get_targets_df(inst_df)
 
-    return render_template('visualize.html', 
-                           name=inst_df['instnm'],
-                           city=inst_df['city'],
-                           stabbr=inst_df['stabbr'],
+    return render_template('visualize.html',
+                           name=inst_df.loc[0, 'instnm'],
+                           city=inst_df.loc[0, 'city'],
+                           stabbr=inst_df.loc[0, 'stabbr'],
                            feature_keys=list(features_df.columns),
                            feature_vals=list(features_df.values[0]),
-                           feat_len=len(features_df.columns))
+                           feat_len=len(features_df.columns),
+                           target_labels=list(targets_df.columns),
+                           gr_rates=list(targets_df.values[0]),
+                           tar_len=len(targets_df.columns))
 
 
 if __name__ == "__main__":

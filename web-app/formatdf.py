@@ -107,3 +107,17 @@ def get_features_df(df):
     feat_dict = dict(zip(feat_cols, feat_desc))
     features_df.rename(columns=feat_dict, inplace=True)
     return features_df
+
+
+def get_targets_df(df):
+    target_cols = ['cstcball_pct_gr2mort', 'cstcball_pct_grasiat',
+                   'cstcball_pct_grbkaat', 'cstcball_pct_grhispt',
+                   'cstcball_pct_grwhitt', 'pgcmbac_pct', 'sscmbac_pct',
+                   'nrcmbac_pct']
+    target_labels = ['2+ Races', 'Asian', 'Black', 'Hispanic', 'White',
+                     'Pell Grant', 'Sub. Stafford Loan', 'Non-Recipient']
+    targets_df = df.loc[:, target_cols]
+    target_dict = dict(zip(target_cols, target_labels))
+    targets_df.rename(columns=target_dict, inplace=True)
+    targets_df = targets_df.round(0)
+    return targets_df

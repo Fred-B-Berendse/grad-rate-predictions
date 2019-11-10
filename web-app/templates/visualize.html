@@ -59,18 +59,40 @@
         <div style="font-size:x-large">{{city}}, {{stabbr}}</div>
       </div>
       <div class ="container">
-            <div class="row">
-                <h2>Institution Features</h2>
-                <table>
-                  {% for i in range(0, feat_len) %}
-                    <tr>
-                      <td>{{feature_keys[i]}}</td><td>{{feature_vals[i]}}</td>    
-                    </tr>
-                  {% endfor %}
-                </table>
-            </div>
+        <div class="row">
+          <div class="col-xs-4">
+            <h2>Institution Features</h2>
+            <table style="width:100%">
+              {% for i in range(0, feat_len) %}
+                <tr>
+                  <td>{{feature_keys[i]}}</td><td>{{feature_vals[i]}}</td>    
+                </tr>
+              {% endfor %}
+            </table>
+          </div>
+          <div class="col-xs-6">
+            <h2>Graduation Rates</h2>
+            <table style="width:100%">
+                <tr>
+                  <th>Target Group</th>
+                  <th>Actual</th>
+                  <th>Lasso Model</th>
+                  <th>RF Model</th>
+                  <th>MCMC Model</th>
+                </tr>
+              {% for i in range(0, tar_len) %}
+                <tr>
+                  <td>{{target_labels[i]}}</td>
+                  <td>{{gr_rates[i]}}</td>
+                  <td>{{lasso[i]}}</td>
+                  <td>{{rf[i]}}</td>
+                  <td>{{mcmc[i]}}</td>    
+                </tr>
+              {% endfor %}
+            </table>
+          </div>
+        </div>
       </div>
-    </div>
     </div><!-- /.container -->
 
 
