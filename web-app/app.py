@@ -31,11 +31,12 @@ def visualize():
     features_df = get_features_df(inst_df)
 
     return render_template('visualize.html', 
-                           name=inst_df['name'],
+                           name=inst_df['instnm'],
                            city=inst_df['city'],
                            stabbr=inst_df['stabbr'],
                            feature_keys=list(features_df.columns),
-                           feature_vals=list(features_df.values[0]))
+                           feature_vals=list(features_df.values[0]),
+                           feat_len=len(features_df.columns))
 
 
 if __name__ == "__main__":
