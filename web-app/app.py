@@ -12,8 +12,10 @@ ratesdb = Database(local=False)
 @app.route('/')
 def index():
     # Get names for each institution
-    sql_str = 'SELECT unitid, instnm, city, stabbr ' + \
-        'FROM institutions ORDER BY instnm ASC;'
+    sql_str = 'SELECT inst.unitid, inst.instnm, inst.city, inst.stabbr ' + \
+        'FROM institutions AS inst ' + \
+        'INNER JOIN lasso AS la ON la.unitid=inst.unitid ' + \
+        'ORDER BY instnm ASC;'
     inst_df = ratesdb.from_sql_query(sql_str)
     return render_template('index.html',
                            unitid=inst_df['unitid'],

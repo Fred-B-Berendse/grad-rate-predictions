@@ -129,14 +129,14 @@ def get_lasso(db, unitid):
         'non_recipient_pred FROM lasso WHERE unitid = :unitid;'
     df = db.from_sql_query(sql_str, unitid=unitid)
     df = df.round(0)
-    pred = list(df.values)
+    pred = df.values[0]
 
     sql_str = 'SELECT twoplus_races_resid, asian_resid, black_resid, ' + \
         'hispanic_resid, white_resid, pell_grant_resid, ssl_resid, ' + \
         'non_recipient_resid FROM lasso WHERE unitid = :unitid;'
     df = db.from_sql_query(sql_str, unitid=unitid)
     df = df.round(0)
-    resid = list(df.values)
+    resid = -df.values[0]
     return pred, resid
 
 
@@ -146,14 +146,14 @@ def get_forest(db, unitid):
         'non_recipient_pred FROM forest WHERE unitid = :unitid;'
     df = db.from_sql_query(sql_str, unitid=unitid)
     df = df.round(0)
-    pred = list(df.values)
+    pred = df.values[0]
 
     sql_str = 'SELECT twoplus_races_resid, asian_resid, black_resid, ' + \
         'hispanic_resid, white_resid, pell_grant_resid, ssl_resid, ' + \
         'non_recipient_resid FROM forest WHERE unitid = :unitid;'
     df = db.from_sql_query(sql_str, unitid=unitid)
     df = df.round(0)
-    resid = list(df.values)
+    resid = -df.values[0]
     return pred, resid
 
 
@@ -163,12 +163,12 @@ def get_mcmc(db, unitid):
         'non_recipient_pred FROM mcmc WHERE unitid = :unitid;'
     df = db.from_sql_query(sql_str, unitid=unitid)
     df = df.round(0)
-    pred = list(df.values)
+    pred = df.values[0]
 
     sql_str = 'SELECT twoplus_races_resid, asian_resid, black_resid, ' + \
         'hispanic_resid, white_resid, pell_grant_resid, ssl_resid, ' + \
         'non_recipient_resid FROM mcmc WHERE unitid = :unitid;'
     df = db.from_sql_query(sql_str, unitid=unitid)
     df = df.round(0)
-    resid = list(df.values)
+    resid = -df.values[0]
     return pred, resid
