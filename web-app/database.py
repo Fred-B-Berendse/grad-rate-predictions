@@ -3,7 +3,8 @@ import sqlalchemy as db
 from sqlalchemy import text
 import pandas as pd
 from formatdf import collapse_all_onehots, get_features_df
-from formatdf import get_targets_df
+from formatdf import get_targets_df, get_lasso, get_forest
+from formatdf import get_mcmc
 
 
 class Database(object):
@@ -54,7 +55,7 @@ if __name__ == "__main__":
 
     print("Connecting to database")
     ratesdb = Database(local=False)
-    unitid = 188429
+    unitid = 110413
     sql_str = 'SELECT * FROM institutions WHERE unitid = :unitid'
     inst_df = ratesdb.from_sql_query(sql_str, unitid=unitid)
 
@@ -62,3 +63,6 @@ if __name__ == "__main__":
     features_df = get_features_df(inst_df)
     targets_df = get_targets_df(inst_df)
 
+    lasso_pred, lasso_resid = get_lasso(ratesdb, unitid)
+    forest_pred, forest_resid = get_forest(ratesdb, unitid)
+    mcmc_pred, mcmc_resid = get_mcmc(ratesdb, unitid)
