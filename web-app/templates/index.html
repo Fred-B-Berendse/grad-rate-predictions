@@ -9,7 +9,7 @@
     <meta name="author" content="">
     <link rel="icon" href="../static/ico/favicon.ico">
 
-    <title>Starter Template for Bootstrap</title>
+    <title>Graduation Rates</title>
 
     <!-- Bootstrap core CSS -->
     <link href="../static/css/bootstrap.min.css" rel="stylesheet">
@@ -42,12 +42,11 @@
               <span class="icon-bar"></span>
               <span class="icon-bar"></span>
             </button>
-            <a class="navbar-brand" href="/">Eventbrite Fraud Detector</a>
+            <a class="navbar-brand" href="/">Graduation Rates</a>
           </div>
           <div id="navbar" class="collapse navbar-collapse">
             <ul class="nav navbar-nav">
               <li class="active"><a href="/">Home</a></li>
-              <li class="active"><a href="/api">API</a></li>
             </ul>
           </div><!--/.nav-collapse -->
         </div>
@@ -56,13 +55,18 @@
     <div class="container">
 
       <div class="starter-template">
-        <h1>EventBrite Fraud Detector</h1>
-        <p class="lead">Click the button below to grab a "live" event.</p>
+        <h1>Graduation Rates</h1>
+        <p class="lead">Select an Institution</p>
         <form action="/visualize" method="POST" align="center" style="width:100%">
-            <input type="submit" value="Get Event" style="width:50%"/>
+            <select name="institution">
+              <option selected value> -- select an option -- </option>
+              {% for i in range(0, len) %}
+                <option value="{{unitid[i]}}"> {{instnm[i]}} ({{city[i]}}, {{stabbr[i]}})</option>
+              {% endfor %}
+            </select> 
+            <input type="submit" value="Get Graduation Rates" style="width:50%"/>
         </form>
       </div>
-
     </div><!-- /.container -->
 
 
