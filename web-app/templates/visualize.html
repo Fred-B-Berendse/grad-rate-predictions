@@ -83,7 +83,10 @@
               {% for i in range(0, tar_len) %}
                 <tr>
                   <td>{{target_labels[i]}}</td>
-                  <td>{{gr_rates[i]}}</td>  
+                  <td>{{gr_rates[i]}}</td>
+                  <td>{{lasso_pred[i]}} ({{lasso_resid[i]}}</td>
+                  <td>{{forest_pred[i]}} ({{forest_resid[i]}}</td>
+                  <td>{{mcmc_pred[i]}} ({{mcmc_resid[i]}}</td>
                 </tr>
               {% endfor %}
             </table>

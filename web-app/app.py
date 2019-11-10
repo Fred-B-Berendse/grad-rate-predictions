@@ -1,6 +1,6 @@
 from flask import Flask, render_template, request
 from formatdf import collapse_all_onehots, get_features_df
-from formatdf import get_targets_df
+from formatdf import get_targets_df, get_lasso, get_forest, get_mcmc
 from database import Database
 # from model import Model
 
@@ -31,6 +31,9 @@ def visualize():
     collapse_all_onehots(inst_df)
     features_df = get_features_df(inst_df)
     targets_df = get_targets_df(inst_df)
+    lasso_pred, lasso_resid = get_lasso(ratesdb, unitid)
+    forest_pred, forest_resid = get_forest(ratesdb, unitid)
+    mcmc_pred, mcmc_resid = get_mcmc(ratesdb, unitid)
 
     return render_template('visualize.html',
                            name=inst_df.loc[0, 'instnm'],
@@ -41,7 +44,13 @@ def visualize():
                            feat_len=len(features_df.columns),
                            target_labels=list(targets_df.columns),
                            gr_rates=list(targets_df.values[0]),
-                           tar_len=len(targets_df.columns))
+                           tar_len=len(targets_df.columns),
+                           lasso_pred=lasso_pred,
+                           lasso_resid=lasso_resid,
+                           forest_pred=forest_pred,
+                           forest_resid=forest_resid,
+                           mcmc_pred=mcmc_pred,
+                           mcmc_resid=mcmc_resid)
 
 
 if __name__ == "__main__":
