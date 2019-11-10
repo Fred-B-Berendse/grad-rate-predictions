@@ -107,7 +107,16 @@ if __name__ == "__main__":
     plt.show()
     lr.plot_coeffs_heatmap(normalized=False)
     plt.show()
-    lr.plot_coeffs_heatmap(normalized=False, min_coeff=0.5, clim=(-3, 3))
+
+    labels_dict = {'control_privnp': 'Private, Not-For-Profit',
+                   'locale_twnrem': 'Locale: Town, Remote',
+                   'latitude': 'Latitude',
+                   'en25': 'English 25th Percentile',
+                   'upgrntp': '% Receiving Pell Grant',
+                   'log_grntof2_pct': 'Log(% Off Campus)',
+                   'logu_uagrntp': 'Log(101 - % Receiving Any Aid)'}
+    lr.plot_coeffs_heatmap(normalized=False, min_coeff=0.5, clim=(-3, 3), 
+                           labels_dict=labels_dict)
     plt.show()
 
     # Print statistics for each test

@@ -120,11 +120,12 @@ class McmcRegressor(Regressor):
         self.train_residuals = self.dataset.Y_train - self.train_predict
         self.test_residuals = self.dataset.Y_test - self.test_predict
 
-    def plot_coeff_distribution(self, target_label):
+    def plot_coeff_distribution(self, target_label, label_dict=None):
         n_features = len(self.dataset.feature_labels)
         n_traces = len(self.traces[target_label]) // 2
         trace = self.traces[target_label][-n_traces:]
         labels = trace.varnames[:-2]
+
         pos = list(range(-1, -n_features-2, -1))
         pos = [0.75*p for p in pos]
         trace_vals = []
@@ -150,7 +151,11 @@ class McmcRegressor(Regressor):
         ax.set_title('Coefficients: ' + target_label + ' Graduation Rate')
         ax.set_xlabel('Coefficient')
         ax.set_yticks(pos)
-        ax.set_yticklabels([la for la in labels])
+        if label_dict is not None:
+            axlabels = [label_dict.get(vn, vn) for vn in trace.varnames[:-2]]
+        else:
+            axlabels = labels
+        ax.set_yticklabels([la for la in axlabels])
 
         ax.axvline(x=0, color='blue', linestyle='--')
         plt.tight_layout()
@@ -309,6 +314,17 @@ if __name__ == "__main__":
     # Generate distribution of coefficients for each target
     mcmc.plot_coeff_distributions()
     plt.show()
+
+    labels_dict = {'control_privnp': 'Private, Not-For-Profit',
+                   'locale_twnrem': 'Locale: Town, Remote',
+                   'locale_rurrem': 'Locale: Rural, Remote',
+                   'latitude': 'Latitude',
+                   'en25': 'English 25th Percentile',
+                   'upgrntp': '% Receiving Pell Grant',
+                   'log_grntof2_pct': 'Log(% Off Campus)',
+                   'logu_uagrntp': 'Log(101 - % Receiving Any Aid)',
+                   'log_enrlt_pct': 'Log(% Enrolled)'}
+    mcmc.plot_coeff_distribution('Hispanic', label_dict=labels_dict)
 
     # Generate distributions of graduation rates for each target
     mcmc.plot_rate_distributions(samples=500)

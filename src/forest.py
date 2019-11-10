@@ -59,7 +59,7 @@ class ForestRegressor(Regressor):
                 color = self.dataset.target_colors[tar_label]
                 plot_partial_dependence(model, self.dataset.X_test, fi, axi,
                                         color=color, label=tar_label)
-
+                axi.set_ylabel('Predicted Graduation Rate (%)')
         for i, f in enumerate(features_list):
             axi = ax[i // 2, i % 2]
             if desc_dict is not None:
@@ -89,7 +89,7 @@ class ForestRegressor(Regressor):
 if __name__ == "__main__":
 
     do_grid_search = False
-    writetodb = True
+    writetodb = False
 
     mdf = pd.read_csv('data/ipeds_2017_cats.csv')
     mdf.drop(['applcn'], axis=1, inplace=True)
@@ -199,7 +199,7 @@ if __name__ == "__main__":
 
         # Write preditions to PostgreSQL database
         print("Connecting to database")
-        ratesdb = Database(local=True)
+        ratesdb = Database(local=False)
         ratesdb.to_sql(model_df, 'forest')
         sqlstr = 'ALTER TABLE forest ADD PRIMARY KEY (unitid);'
         ratesdb.engine.execute(sqlstr)

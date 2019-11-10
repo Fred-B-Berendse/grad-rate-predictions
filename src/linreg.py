@@ -51,7 +51,8 @@ class LinearRegressor(Regressor):
                                     y_labels=y_labels,
                                     colors=colors)
 
-    def plot_coeffs_heatmap(self, normalized=False, min_coeff=None, clim=None):
+    def plot_coeffs_heatmap(self, normalized=False, min_coeff=None, clim=None,
+                            labels_dict=None):
 
         X = self.model.coef_
         X = np.insert(X, 0, np.zeros(X.shape[0]), axis=1)
@@ -69,7 +70,12 @@ class LinearRegressor(Regressor):
             X = X[:, idx]
             y_labels = y_labels[idx]
 
-        make_heatmap(X.T, y_labels=y_labels,
+        if labels_dict is not None:
+            labels = [labels_dict.get(la, la) for la in y_labels]
+        else:
+            labels = y_labels
+
+        make_heatmap(X.T, y_labels=labels,
                      x_labels=self.dataset.target_labels,
                      cmap='seismic_r', center=0, clim=clim)
 
