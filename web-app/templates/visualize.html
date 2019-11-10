@@ -60,17 +60,17 @@
       </div>
       <div class ="container">
         <div class="row">
-          <div class="col-xs-4">
+          <div class="col-xs-5">
             <h2>Institution Features</h2>
             <table style="width:100%">
               {% for i in range(0, feat_len) %}
                 <tr>
-                  <td>{{feature_keys[i]}}</td><td>{{feature_vals[i]}}</td>    
+                  <th>{{feature_keys[i]}}</th><td>{{feature_vals[i]}}</td>    
                 </tr>
               {% endfor %}
             </table>
           </div>
-          <div class="col-xs-6">
+          <div class="col-xs-7">
             <h2>Graduation Rates</h2>
             <table style="width:100%">
                 <tr>
@@ -83,10 +83,7 @@
               {% for i in range(0, tar_len) %}
                 <tr>
                   <td>{{target_labels[i]}}</td>
-                  <td>{{gr_rates[i]}}</td>
-                  <td>{{lasso[i]}}</td>
-                  <td>{{rf[i]}}</td>
-                  <td>{{mcmc[i]}}</td>    
+                  <td>{{gr_rates[i]}}</td>  
                 </tr>
               {% endfor %}
             </table>
