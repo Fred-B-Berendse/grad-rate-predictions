@@ -1,6 +1,5 @@
 from flask import Flask, render_template, request
-import numpy as np
-import pandas as pd
+from formatdf import collapse_all_onehots, get_features_df
 from database import Database
 # from model import Model
 
@@ -28,7 +27,16 @@ def visualize():
     unitid = str(request.form['institution'])
     sql_str = 'SELECT * FROM institutions WHERE unitid = :unitid'
     inst_df = ratesdb.from_sql_query(sql_str, unitid=unitid)
-    return render_template('visualize.html', data=inst_df)
+    collapse_all_onehots(inst_df)
+    features_df = get_features_df(inst_df)
+
+    return render_template('visualize.html', 
+                           name=inst_df['name'],
+                           city=inst_df['city'],
+                           stabbr=inst_df['stabbr'],
+                           feature_keys=list(features_df.columns),
+                           feature_vals=list(features_df.values[0]))
+
 
 if __name__ == "__main__":
     app.run(host='0.0.0.0', port=8105, threaded=True, debug=True)

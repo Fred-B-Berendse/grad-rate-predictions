@@ -2,6 +2,7 @@ import os
 import sqlalchemy as db
 from sqlalchemy import text
 import pandas as pd
+from formatdf import collapse_all_onehots, get_features_df
 
 
 class Database(object):
@@ -55,3 +56,7 @@ if __name__ == "__main__":
     unitid = 188429
     sql_str = 'SELECT * FROM institutions WHERE unitid = :unitid'
     inst_df = ratesdb.from_sql_query(sql_str, unitid=unitid)
+
+    collapse_all_onehots(inst_df)
+    features_df = get_features_df(inst_df)
+
