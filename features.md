@@ -3,7 +3,7 @@
 | is private, not-for-profit |
 | highest degree offered |
 | is a HBCU |
-| Locale: city/suburb/town/rural + large/midsize/small/fringe/distance/remote|
+| locale: city/suburb/town/rural + large/midsize/small/fringe/distance/remote|
 | institution size |
 | longitude of institution |
 | latitutde of institution |
