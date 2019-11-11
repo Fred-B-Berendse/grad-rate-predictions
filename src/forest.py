@@ -15,6 +15,9 @@ plt.style.use('seaborn-poster')
 
 
 class ForestRegressor(Regressor):
+    '''
+    Class to handle random forest modeling of a dataset
+    '''
 
     def __init__(self, model, dataset):
         self.model = model
@@ -39,8 +42,16 @@ class ForestRegressor(Regressor):
             ax.tick_params(axis='x', rotation=70)
             ax.set_title(target)
 
-    def plot_partial_dependences(self, features_list, targets_list, 
-                                 desc_dict=None):
+    def plot_partial_dependences(self, features_list, targets_list,
+                                 x_label_dict=None):
+        '''
+        Plots partial depencences of the given set of features for each target.
+
+            features_list - list of features to display in each plot
+            targets_list - list of targets; each target will have its own graph
+            x_label_dict - dictionary of x-axis labels:
+                            {target: x-axis label}
+        '''
         model = deepcopy(self.model)
         feat_idx = [np.where(self.dataset.feature_labels == f)
                     for f in features_list]
@@ -62,14 +73,17 @@ class ForestRegressor(Regressor):
                 axi.set_ylabel('Predicted Graduation Rate (%)')
         for i, f in enumerate(features_list):
             axi = ax[i // 2, i % 2]
-            if desc_dict is not None:
-                axi.set_xlabel(desc_dict[f])
+            if x_label_dict is not None:
+                axi.set_xlabel(x_label_dict[f])
             else:
                 axi.set_xlabel(f)
             axi.legend(loc='best')
         plt.tight_layout()
 
     def print_metrics(self):
+        '''
+        Prints R-squared, mean absolute error, and RMSE for each target
+        '''
         mae = self.mae()
         rmse = self.rmse()
         r2 = self.r_squared()
@@ -155,7 +169,6 @@ if __name__ == "__main__":
 
         # Use joblib instead of pickle to save the model
         dump(best_model, 'models/forest.joblib')
-    
     else:
         best_model = load('models/forest.joblib')
 
@@ -172,7 +185,7 @@ if __name__ == "__main__":
     plt.show()
 
     # Plot partial dependence for top features
-    desc_dict = {'en25': 'English 25th Percentile', 
+    desc_dict = {'en25': 'English 25th Percentile',
                  'upgrntp': 'Percent Receiving Pell Grant',
                  'admssn_pct': 'Percent of Applicants Admitted',
                  'grntwf2_pct': 'Percent Living with Family'}
@@ -187,7 +200,7 @@ if __name__ == "__main__":
     plt.show()
 
     if writetodb:
-        
+
         # Create dataframe to write test results to database
         model_dict = {'unitid': mdf.loc[ds.idx_test, 'unitid'].values}
         for j, target in enumerate(ds.target_labels):

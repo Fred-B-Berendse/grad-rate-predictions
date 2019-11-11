@@ -1,5 +1,4 @@
 import numpy as np
-import pandas as pd
 import math
 import matplotlib.pyplot as plt
 from sklearn.model_selection import train_test_split
@@ -12,25 +11,35 @@ class DropError(Exception):
 
 
 class Dataset(object):
+    '''
+    A class for handling features and targets used in model.
+    '''
 
     def __init__(self, X, Y, test_size=0.25, random_state=None,
                  feature_labels=None, target_labels=None):
+
+        # Raise an error if the lengths of X and Y do not match
         if len(Y.shape) == 1:
             Y = Y.reshape(-1, 1)
         if X.shape[0] != Y.shape[0]:
             raise ValueError('Dimensions of X and Y do not match')
 
+        # Perform a test-train split
         idx = np.array(range(X.shape[0]))
         self.X_train, self.X_test, \
             self.Y_train, self.Y_test, \
             self.idx_train, self.idx_test = \
             train_test_split(X, Y, idx, test_size=test_size,
                              random_state=random_state)
+
+        # Save counts as attributes
         self.n_features = self.X_train.shape[1]
         self.n_targets = self.Y_train.shape[1]
         self.n_train = self.X_train.shape[0]
         self.n_test = self.X_test.shape[0]
 
+        # Save feature and target labels if given
+        # otherwise refer to defaults f0, f1, f2... and t0, t1, t2
         if feature_labels is None:
             self.feature_labels = np.array(
                                     ['f'+str(i) for i in range(X.shape[1])])
@@ -42,6 +51,7 @@ class Dataset(object):
         else:
             self.target_labels = target_labels
 
+        # Initialize feature/target colors and scalers
         self.feature_colors = None
         self.target_colors = None
         self.features_scaler = None
@@ -50,6 +60,11 @@ class Dataset(object):
     @classmethod
     def from_df(cls, df, feature_cols, target_cols, test_size=0.25,
                 random_state=None):
+        '''
+        Instantiates the class from a pandas Dataframe.
+        - feature_cols is the list of column names to become features
+        - target_cols is the list of columns names to become targets
+        '''
         X = df.loc[:, feature_cols].values
         Y = df.loc[:, target_cols].values
         return cls(X, Y, test_size=test_size, random_state=random_state,
@@ -144,6 +159,14 @@ class Dataset(object):
             [self.target_colors.pop(l) for l in target_labels]
 
     def transform_feature(self, label, new_label, function, drop_old=True):
+        '''
+        Applies a function to every value in the given feature. The result is
+        saved as a new feature.
+
+            label - name of the input feature
+            new_label - name of the new output feature
+            function - a function to apply to each value in the feature
+        '''
         idx = np.where(self.feature_labels == label)
         self.feature_labels = np.append(self.feature_labels, new_label)
         self.n_features += 1
@@ -158,12 +181,24 @@ class Dataset(object):
 
     def transform_features(self, features_dict, drop_old=True):
         '''
-        features_dict: {feature_label: (new_label_name, function)}
+        Transforms multiple features by applying a function to each value.
+        The results are saved as new features.
+
+            features_dict - a dictionary with the following format:
+                            {feature_label: (new_label_name, function)}
         '''
         for label, (new_label, func) in features_dict.items():
             self.transform_feature(label, new_label, func, drop_old=drop_old)
 
     def transform_target(self, label, new_label, function, drop_old=True):
+        '''
+        Applies a function to every value in the given target. The result is
+        saved as a new target.
+
+            label - name of the input feature
+            new_label - name of the new output feature
+            function - a function to apply to each value in the feature
+        '''
         idx = np.where(self.target_labels == label)
         self.target_labels = np.append(self.target_labels, new_label)
         self.n_targets += 1
@@ -178,24 +213,34 @@ class Dataset(object):
 
     def transform_targets(self, targets_dict, drop_old=True):
         '''
-        targets_dict: {target_label: (new_label_name, function)}
+        Transforms multiple features by applying a function to each value.
+        The results are saved as new features.
+
+            features_dict - a dictionary with the following format:
+                            {target_label: (new_label_name, function)}
         '''
         for label, (new_label, func) in targets_dict.items():
             self.transform_target(label, new_label, func, drop_old=drop_old)
 
     def make_feature_histograms(self, features, x_labels=None, colors=None,
                                 center=None):
+        '''
+        Makes histograms of all features listed
+
+            features - list of features to graph
+            x_labels - list of labels to use for each x-axis
+            colors - list of colors to use for each feature
+        '''
         indexes = [np.where(self.feature_labels == f) for f in features]
         indexes = np.array(indexes).flatten()
-        self.make_histograms(self.X_train[:, indexes], x_labels=x_labels,
-                             colors=colors, center=center)
+        self._make_histograms(self.X_train[:, indexes], x_labels=x_labels,
+                              colors=colors, center=center)
 
-    def make_histograms(self, X, bins=20, x_labels=None, colors=None,
-                        center=None):
+    def _make_histograms(self, X, bins=20, x_labels=None, colors=None,
+                         center=None):
         nplots = X.shape[1]
         nplotrows = math.ceil(nplots/2)
         if colors is None:
-            # colors = cm.tab10(np.linspace(0, 1, nplots))
             colors = np.repeat(None, nplots)
         fig, ax = plt.subplots(nplotrows, 2, figsize=(12, 4*nplotrows))
         for i in range(nplots):
@@ -221,31 +266,3 @@ class Dataset(object):
         res = name.replace('-', '_').replace('+', 'plus')
         res = res.replace(' ', '_').replace('2', 'two')
         return res.lower()
-
-
-if __name__ == "__main__":
-    mdf = pd.read_csv('data/ipeds_2017_cats.csv')
-    mdf.drop(['applcn'], axis=1, inplace=True)
-
-    feat_cols = np.array(['control_privnp', 'hloffer_postmc', 'hloffer_postbc',
-                          'hbcu_yes', 'locale_ctylrg', 'locale_ctysml',
-                          'locale_ctymid', 'locale_twndst', 'locale_rurfrg',
-                          'locale_twnrem', 'locale_submid', 'locale_subsml',
-                          'locale_twnfrg', 'locale_rurdst', 'locale_rurrem',
-                          'instsize_1to5k', 'instsize_5to10k',
-                          'instsize_10to20k', 'instsize_gt20k', 'longitud',
-                          'latitude', 'admssn_pct', 'enrlt_pct', 'enrlft_pct',
-                          'en25', 'uagrntp', 'upgrntp', 'npgrn2',
-                          'grntof2_pct', 'grntwf2_pct'])
-
-    target_cols = np.array(['cstcball_pct_gr2mort', 'cstcball_pct_grasiat',
-                            'cstcball_pct_grbkaat', 'cstcball_pct_grhispt',
-                            'cstcball_pct_grwhitt', 'pgcmbac_pct',
-                            'sscmbac_pct', 'nrcmbac_pct'])
-
-    ds = Dataset.from_df(mdf, feat_cols, target_cols, test_size=0.25,
-                         random_state=10)
-
-    features = ['enrlt_pct', 'grntwf2_pct', 'grntof2_pct', 'uagrntp',
-                'enrlft_pct']
-    ds.drop_features(features)

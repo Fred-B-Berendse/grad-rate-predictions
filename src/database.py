@@ -4,6 +4,9 @@ import pandas as pd
 
 
 class Database(object):
+    '''
+    A class for handling database connections and queries
+    '''
 
     def __init__(self, local=True):
 
@@ -22,11 +25,16 @@ class Database(object):
         self.engine = db.create_engine(self.hoststring)
 
     def to_sql(self, df, db_table_name):
+        '''
+        writes the contents of a pandas dataframe to the database table
+        db_table_name
+        '''
         df.to_sql(db_table_name, self.engine, if_exists='replace')
 
     def from_sql(self, table_name):
-        # reads a SQL table into an IpedsTable object
-        # see pandas.read_sql
+        '''
+        Reads a database table into a pandas DataFrame
+        '''
         print(f'reading {table_name} from database')
         metadata = db.MetaData()
         table = db.Table(table_name, metadata, autoload=True, 
@@ -35,24 +43,14 @@ class Database(object):
         return self.from_sql_query(query)
 
     def from_sql_query(self, sql_str):
-        # reads a SQL query into a dataframe
+        '''
+        Executes a SQL string and returns the results as a pandas DataFrame
+        '''
         # https://towardsdatascience.com/sqlalchemy-python-tutorial-79a577141a91
         ResultProxy = self.engine.execute(sql_str)
         ResultSet = ResultProxy.fetchall()
         result = pd.DataFrame(data=ResultSet, columns=ResultSet[0].keys())
-        # result.df.drop(columns=['index'], inplace=True)
         return result
 
     def close(self):
         self.engine.dispose()
-
-
-if __name__ == "__main__":
-
-    print("Connecting to database")
-    ratesdb = Database(local=True)
-    test_data = [[4, 5, 6], [1, 2, 3], [7, 8, 9]]
-    test_df = pd.DataFrame(test_data, columns=['foo', 'bar', 'baz'])
-    print("Writing to table test")
-    ratesdb.to_sql(test_df, 'test')
-    ratesdb.close()

@@ -13,6 +13,9 @@ plt.style.use('seaborn-poster')
 
 
 class PCAModel(object):
+    '''
+    Class for handling PCA modeling of data
+    '''
 
     def __init__(self, dataset, n_components=5):
         self.model = PCA(n_components=n_components)
@@ -101,7 +104,7 @@ if __name__ == "__main__":
     make_histograms(mdf.loc[:, group].values, x_labels=labels)
     plt.show()
 
-    # Make histograms of graduation rates
+    # Make histograms of graduation rates for each race
     group = ['cstcball_pct_gr2mort', 'cstcball_pct_grasiat',
              'cstcball_pct_grbkaat', 'cstcball_pct_grhispt',
              'cstcball_pct_grwhitt']
@@ -111,6 +114,7 @@ if __name__ == "__main__":
     make_histograms(mdf.loc[:, group].values, x_labels=x_labels, colors=colors)
     plt.show()
 
+    # Make histograms of graduation rates for each aid status
     group = ['pgcmbac_pct', 'sscmbac_pct', 'nrcmbac_pct']
     labels = ['Pell Grant', 'SSL', 'Non-Recipient']
     x_labels = ['Graduation Rate: ' + l for l in labels]
@@ -118,7 +122,7 @@ if __name__ == "__main__":
     make_histograms(mdf.loc[:, group].values, x_labels=x_labels, colors=colors)
     plt.show()
 
-    # Make histograms of graduation ratios
+    # Make histograms of graduation ratios for each race
     group = ['cstcball_rat_gr2mort', 'cstcball_rat_grasiat',
              'cstcball_rat_grbkaat', 'cstcball_rat_grhispt']
     labels = ['2+ Races', 'Asian', 'Black', 'Hispanic']
@@ -127,6 +131,7 @@ if __name__ == "__main__":
     make_histograms(mdf.loc[:, group].values, x_labels=x_labels, colors=colors)
     plt.show()
 
+    # Make histograms of graduation ratios for each aid status
     group = ['pgcmbac_rat', 'sscmbac_rat']
     labels = ['Pell Grant', 'SSL']
     x_labels = ['Graduation Rate: ' + l + ' to Non-Recipient' for l in labels]
@@ -134,7 +139,8 @@ if __name__ == "__main__":
     make_histograms(mdf.loc[:, group].values, x_labels=x_labels, colors=colors)
     plt.show()
 
-    # institutional rank percentiles vs SAT/ACT benchmark quartiles
+    # Scatter plots of institutional rank percentiles vs SAT/ACT benchmark
+    # quartiles
     fig, ax = make_rank_plot(mdf, ['satvr25', 'acten25'], 'en25',
                              ['SAT Verbal 25th Percentile',
                              'ACT English 25th Percentile'])
@@ -152,15 +158,15 @@ if __name__ == "__main__":
                              'ACT Math 75th Percentile'])
     plt.show()
 
-    # Sum of all students
+    # Calculate the sum of all students in the dataset
     columns = ['cstrevex_grwhitt', 'cstrevex_grhispt', 'cstrevex_grbkaat',
                'cstrevex_grasiat', 'cstrevex_graiant', 'cstrevex_grnhpit',
                'cstrevex_gr2mort']
     print("Total cohort count: ", mdf.loc[:, columns].sum().sum())
 
-    # Completion counts & US Population
+    # Bar plot of completion counts & US Population
     columns = ['cstcball_grwhitt', 'cstcball_grhispt', 'cstcball_grbkaat',
-               'cstcball_grasiat', 'cstcball_graiant', 'cstcball_grnhpit', 
+               'cstcball_grasiat', 'cstcball_graiant', 'cstcball_grnhpit',
                'cstcball_gr2mort']
     labels = ['White', 'Hispanic', 'Black', 'Asian', 'Nat. Am.', 'Pac. Isl.',
               '2+ Races']
@@ -198,7 +204,7 @@ if __name__ == "__main__":
     ax.set_title("Institution-wide Completion Percentage by Race/Ethnicity")
     plt.show()
 
-    # PCA plots: completion percentages
+    # PCA plots of completion percentages
     feat_cols = ['iclevel_2to4', 'iclevel_0to2', 'iclevel_na',
                  'control_public', 'control_privnp', 'control_na',
                  'hloffer_assoc', 'hloffer_doct', 'hloffer_bach',
@@ -220,8 +226,7 @@ if __name__ == "__main__":
                    'nrcmbac_pct']
 
     # Read in the dataframe with one-hot-encoded categories
-    mdf = pd.read_csv('data/ipeds_2017_cats_eda.csv')
-    mdf.drop('Unnamed: 0', axis=1, inplace=True)
+    mdf = pd.read_csv('data/ipeds_2017_cats.csv')
     ds = Dataset.from_df(mdf, feat_cols, target_cols, test_size=0,
                          random_state=10)
 
@@ -287,4 +292,3 @@ if __name__ == "__main__":
         axi.set_ylabel(labels[i])
         axi.plot([0, 100], [0, 100], linestyle='--', color='black')
     plt.show()
-

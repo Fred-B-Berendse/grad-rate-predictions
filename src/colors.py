@@ -20,6 +20,9 @@ def get_colors(labels, color_dict):
 
 
 def targets_color_dict():
+    '''
+    Creates a dictionary of colors for all targets
+    '''
     labels = ['Asian', 'Black', 'Hispanic', 'Nat. Am.', 'Pac. Isl.', 'White',
               '2+ Races']
     # labels = np.array(['Graduation Rate: ' + l for l in labels]) 
