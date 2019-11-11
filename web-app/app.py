@@ -52,7 +52,8 @@ def visualize():
                            forest_pred=forest_pred,
                            forest_resid=forest_resid,
                            mcmc_pred=mcmc_pred,
-                           mcmc_resid=mcmc_resid)
+                           mcmc_resid=mcmc_resid,
+                           unitid=unitid)
 
 
 if __name__ == "__main__":
