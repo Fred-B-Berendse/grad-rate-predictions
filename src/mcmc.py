@@ -331,12 +331,17 @@ if __name__ == "__main__":
     plt.show()
 
     # Graph predictions for a member of the test dataset
-    obs_num = 25
-    Y_actual = mcmc.dataset.Y_test[obs_num]
-    X = mcmc.dataset.X_test[obs_num]
-    mcmc.plot_predict_distributions(X, Y_actual)
-    plt.tight_layout()
-    plt.show()
+    unitid = mdf['unitid']
+    for i, idx in enumerate(ds.idx_test):
+        print("Generating image {} of {}".format(i+1, len(ds.idx_test)))
+        print("  unitid: {}".format(unitid[idx]))
+        filepath = 'web-app/static/images/' + str(unitid[idx]) + '.png'
+        print("  filepath: {}".format(filepath))
+        Y_actual = mcmc.dataset.Y_test[i]
+        X = mcmc.dataset.X_test[i]
+        mcmc.plot_predict_distributions(X, Y_actual)
+        plt.tight_layout()
+        plt.savefig(filepath)
 
     if writetodb: 
 
