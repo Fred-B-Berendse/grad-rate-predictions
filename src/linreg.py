@@ -3,7 +3,7 @@ import numpy as np
 import pandas as pd
 from sklearn.linear_model import LinearRegression
 from plotting import make_scatterplots, make_heatmap
-from colors import targets_color_dict, get_colors
+from colors import targets_color_dict
 from dataset import Dataset
 from regressor import Regressor
 plt.style.use('seaborn-whitegrid')
@@ -24,6 +24,9 @@ class LinearRegressor(Regressor):
         self.means = None
 
     def calc_vifs(self):
+        '''
+        Calculates variance inflation factors for each feature
+        '''
         Xarr = self.dataset.X_train
         vifs = np.array([], dtype=float)
         for i in range(Xarr.shape[1]):
@@ -41,6 +44,10 @@ class LinearRegressor(Regressor):
         return np.sqrt(np.abs(self.test_residuals/stdev_resid))
 
     def plot_scale_locations(self):
+        '''
+        Plots a scale-location graph for each target. This is used to check
+        for heteroskedacity.
+        '''
         y_labels = ['sqrt(|Residual|)' for _ in self.dataset.target_labels]
         x_labels = ['Predicted: '+l for l in self.dataset.target_labels]
         sc_loc = self._calc_scale_location()
@@ -53,7 +60,13 @@ class LinearRegressor(Regressor):
 
     def plot_coeffs_heatmap(self, normalized=False, min_coeff=None, clim=None,
                             labels_dict=None):
+        '''
+        Plots a heatmap consisting of the coefficients for each target along
+        the x-axis and each feature along the y-axis.
 
+            normalize - if True, scaled coefficents are shown
+                        if False, unscaled coefficients are shown
+        '''
         X = self.model.coef_
         X = np.insert(X, 0, np.zeros(X.shape[0]), axis=1)
 
@@ -78,12 +91,6 @@ class LinearRegressor(Regressor):
         make_heatmap(X.T, y_labels=labels,
                      x_labels=self.dataset.target_labels,
                      cmap='seismic_r', center=0, clim=clim)
-
-    def log10_sm(self, x):
-        return np.log10(x + 1)
-
-    def log10u_sm(self, x):
-        return np.log10(101-x)
 
 
 if __name__ == "__main__":
@@ -110,24 +117,19 @@ if __name__ == "__main__":
 
     ds = Dataset.from_df(mdf, feat_cols, target_cols, test_size=0.25,
                          random_state=10)
-    ds.target_labels = ['2+ Races', 'Asian', 'Black', 'Hispanic', 'White', 'Pell Grant',
-                        'SSL', 'Non-Recipient']
+    ds.target_labels = ['2+ Races', 'Asian', 'Black', 'Hispanic', 'White',
+                        'Pell Grant', 'SSL', 'Non-Recipient']
     ds.target_colors = targets_color_dict()
 
-    # Calculate variance inflation factors
-    lr = LinearRegressor(LinearRegression(), ds)
-    vifs = lr.calc_vifs()
-    print(f"VIF: {vifs}")
-
     # transform some features
-    tr_feature_dict = {'enrlt_pct': ('log_enrlt_pct', lr.log10_sm),
-                       'grntwf2_pct': ('log_grntwf2_pct', lr.log10_sm),
-                       'grntof2_pct': ('log_grntof2_pct', lr.log10_sm),
-                       'uagrntp': ('logu_uagrntp', lr.log10u_sm),
-                       'enrlft_pct': ('logu_enrlft_pct', lr.log10u_sm)}
+    tr_feature_dict = {'enrlt_pct': ('log_enrlt_pct', ds.log10_sm),
+                       'grntwf2_pct': ('log_grntwf2_pct', ds.log10_sm),
+                       'grntof2_pct': ('log_grntof2_pct', ds.log10_sm),
+                       'uagrntp': ('logu_uagrntp', ds.log10u_sm),
+                       'enrlft_pct': ('logu_enrlft_pct', ds.log10u_sm)}
     ds.transform_features(tr_feature_dict, drop_old=False)
 
-    # Plot histograms of transformed features
+    # Plot histograms of features before and after transformation
     features = ['enrlt_pct', 'log_enrlt_pct',
                 'enrlft_pct', 'logu_enrlft_pct',
                 'uagrntp', 'logu_uagrntp',
@@ -144,10 +146,18 @@ if __name__ == "__main__":
     ds.make_feature_histograms(features, x_labels=x_labels)
     plt.show()
 
+    # Drop the features that have been transformed
     features = ['enrlt_pct', 'grntwf2_pct', 'grntof2_pct', 'uagrntp',
                 'enrlft_pct']
     ds.drop_features(features)
+
+    # Scale the remaining features and targets
     ds.scale_features_targets()
+
+    # Calculate variance inflation factors
+    lr = LinearRegressor(LinearRegression(), ds)
+    vifs = lr.calc_vifs()
+    print(f"VIF: {vifs}")
 
     # Perform fitting and predicting
     lr.fit_train()

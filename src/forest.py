@@ -34,6 +34,7 @@ class ForestRegressor(Regressor):
         for j, target in enumerate(self.dataset.target_labels):
             model.fit(self.dataset.X_train, self.dataset.Y_train[:, j])
             idx = np.argsort(model.feature_importances_)
+            # Start with the most important feature and work backward
             idx = idx[-1:-n_features-1:-1]
             fig, ax = make_barplot(model.feature_importances_[idx],
                                    x_labels=self.dataset.feature_labels[idx],

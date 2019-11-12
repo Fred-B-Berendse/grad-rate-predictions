@@ -12,6 +12,9 @@ plt.style.use('seaborn-poster')
 
 
 class McmcRegressor(Regressor):
+    '''
+    class for handling a Markov Chain Monte Carlo model of a dataset
+    '''
 
     def __init__(self, dataset):
         self.dataset = dataset
@@ -32,8 +35,17 @@ class McmcRegressor(Regressor):
 
     @staticmethod
     def replace_bad_chars(mystr):
-        res = mystr.replace(' ', '_').replace('+', 'pl')
-        res = res.replace('-', '_').replace('2', 'two')
+        '''
+        Replaces invalid characters in a target or feature for use in a GLM
+        formula.
+        '''
+        replace_list = [(' ', '_'), ('+', 'pl'), ('-', '_'), ('0', 'zero'),
+                        ('1', 'one'), ('2', 'two'), ('3', 'three'),
+                        ('4', 'four'), ('5', 'five'), ('6', 'six'),
+                        ('7', 'seven'), ('8', 'eight'), ('9', 'nine')]
+        res = mystr
+        for orig, new in replace_list:
+            res = res.replace(orig, new)
         return res.lower()
 
     def _make_formula(self, feat_list, target_label):
@@ -49,21 +61,33 @@ class McmcRegressor(Regressor):
         return data
 
     def build_model(self, target_label, draws=2000, tune=500):
-
+        '''
+        Builds a model for a given target by creating a MCMC regression model
+        then sampling from the trace of the model.
+        '''
+        # Format the target into a pandas DataFrame with a valid column name
+        # for use in a GLM model
         data = self._format_data(target_label)
         print("data columns: {}".format(data.columns))
+
+        # Create the GLM formula i.e. target ~ feature0 + feature1 + ...
         formula = self._make_formula(self.dataset.feature_labels,
                                      target_label)
         print("formula: {}".format(formula))
 
+        # Create the model from a GLM formula
         with self.models[target_label]:
-            # family = pm.glm.families.Normal()
             pm.glm.GLM.from_formula(formula, data)
 
+        # Sample from the traces not in the burn-in
         with self.models[target_label]:
             self.traces[target_label] = pm.sample(draws, tune=tune)
 
     def build_models(self, draws=2000, tune=500):
+        '''
+        Builds a model for all targets in the dataset by creating a MCMC
+        regression model then sampling from the trace of the model.
+        '''
         for i, target_label in enumerate(self.dataset.target_labels):
             self.build_model(target_label, draws=draws, tune=tune)
 
@@ -75,12 +99,24 @@ class McmcRegressor(Regressor):
             pickle.dump({'models': self.models, 'traces': self.traces}, buff)
 
     def calc_var_means(self):
+        '''
+        Caclulates the mean value of the trace for each target
+        These means are stored in the attribute var_means
+        '''
         self.var_means = {}
         for variable in self.trace.varnames:
             mean = np.mean(self.trace[variable])
             self.var_means[variable] = mean
 
     def predict_one(self, X, get_range=False):
+        '''
+        Calculates the predicted target value of the model for one observation
+
+            X - a numpy array of feature values making up an observation
+            get_range - if true, the method also returns the lo and hi value
+                        of the highest posterior density (HPD) range
+                        (2.5% - 97.5%)
+        '''
 
         # Insert Intercept to labels and X values
         X_obs = np.insert(X, 0, 1)
@@ -104,6 +140,14 @@ class McmcRegressor(Regressor):
             return mean_loc
 
     def get_prediction(self, X_arr):
+        '''
+        Calculates the predicted target value of the model for an array of
+        observations.
+
+            X_arr - a numpy array. Each row is an observation and each column
+                    is a feature
+        '''
+
         y_pred = []
         for target_label in self.dataset.target_labels:
             trace = self.traces[target_label]
@@ -115,19 +159,41 @@ class McmcRegressor(Regressor):
         return np.array(y_pred).T
 
     def predict(self):
+        '''
+        Caculates predictions for each target in the dataset's train and test
+        data.
+
+        Results are stored in the attributes train_predict, test_predict,
+        train_residuals, and test_residuals.
+        '''
         self.train_predict = self.get_prediction(self.dataset.X_train)
         self.test_predict = self.get_prediction(self.dataset.X_test)
         self.train_residuals = self.dataset.Y_train - self.train_predict
         self.test_residuals = self.dataset.Y_test - self.test_predict
 
     def plot_coeff_distribution(self, target_label, label_dict=None):
+        '''
+        Plots the distribution of coefficients from a target model by
+        sampling its trace. Distributions are presented as horizontal violin
+        plots.
+
+            target_label - the target to plot
+            label_dict - if given, feature descriptions will replace labels
+                         as y-axis tick labels. Dictionary form should be
+                         {feature_label: feature description}
+        '''
+        # Take only the last half of the trace to ensure we are well beyond
+        # burn-in
         n_features = len(self.dataset.feature_labels)
         n_traces = len(self.traces[target_label]) // 2
         trace = self.traces[target_label][-n_traces:]
         labels = trace.varnames[:-2]
 
+        # Plot the first coefficient (Intercept) at the top, then work down
         pos = list(range(-1, -n_features-2, -1))
         pos = [0.75*p for p in pos]
+
+        # Arrange the traces into a list
         trace_vals = []
         for la in labels:
             trace_vals.append(trace[la])
@@ -138,6 +204,7 @@ class McmcRegressor(Regressor):
                               widths=0.7, showmeans=True, showextrema=True,
                               showmedians=False)
 
+        # Set the color of the violin plots to match the target's color
         target_color = self.dataset.target_colors[target_label]
         for pc in parts['bodies']:
             pc.set_facecolor(target_color)
@@ -150,6 +217,8 @@ class McmcRegressor(Regressor):
 
         ax.set_title('Coefficients: ' + target_label + ' Graduation Rate')
         ax.set_xlabel('Coefficient')
+
+        # Rename the y-axis tick labels to the feature names or descriptions
         ax.set_yticks(pos)
         if label_dict is not None:
             axlabels = [label_dict.get(vn, vn) for vn in trace.varnames[:-2]]
@@ -157,17 +226,26 @@ class McmcRegressor(Regressor):
             axlabels = labels
         ax.set_yticklabels([la for la in axlabels])
 
+        # Draw a vertical line at x=0 for reference
         ax.axvline(x=0, color='blue', linestyle='--')
         plt.tight_layout()
+
         return fig, ax
 
     def plot_coeff_distributions(self):
+        '''
+        Plots the distribution of coefficients for each target by
+        sampling its trace. Distributions are presented as horizontal violin
+        plots.
+        '''
         for target_label in self.dataset.target_labels:
             self.plot_coeff_distribution(target_label)
 
     def calc_predict_means_distribution(self, target_label, samples=500):
-        # Calculates the distribution of mean graduation rates across all
-        # institutions
+        '''
+        Calculates the distribution of mean predicted values across all
+        observations.
+        '''
         all_preds = []
         for i in range(mcmc.dataset.n_test):
             X = mcmc.dataset.X_test[i]
@@ -177,21 +255,29 @@ class McmcRegressor(Regressor):
         all_preds = np.array(all_preds)
         return np.mean(all_preds, axis=0)
 
-    def plot_rate_distribution(self, target_label, ax,
-                               pos=0, samples=500):
+    def plot_rate_distribution(self, target_label, ax, pos=0, samples=500):
+        '''
+        Plot the distribution of mean graduation rate across all observations
+        for a given target. The distribution is presented as a horizontal
+        violinplot. The actual target mean across all observations
+        is shown as a diamond.
+        '''
 
+        # Calculate the mean predicted value across all observations
         y_pred_dist = self.calc_predict_means_distribution(target_label,
                                                            samples=samples)
 
+        # Plot the violinplot of the distribution
         parts = ax.violinplot(y_pred_dist, [pos], points=80, vert=False,
                               widths=0.7, showmeans=True, showextrema=True,
                               showmedians=False)
 
-        # Plot the actual mean graduation rate
+        # Plot the actual mean target value as a diamond
         idx = np.argwhere(self.dataset.target_labels == target_label)[0][0]
         ax.scatter(self.dataset.Y_test[:, idx].mean(), pos,
                    marker='D', label='Actual', color='black')
 
+        # Set the color of the violinplot to match the dataset target color
         target_color = self.dataset.target_colors[target_label]
         for pc in parts['bodies']:
             pc.set_facecolor(target_color)
@@ -203,24 +289,43 @@ class McmcRegressor(Regressor):
         parts['cmaxes'].set_color(target_color)
 
     def plot_rate_distributions(self, samples=500):
+        '''
+        Plot the distribution of mean graduation rates across all observations
+        for all targets. Each distribution is presented as a horizontal
+        violinplot. The actual target mean across all observations
+        is shown as a diamond.
+        '''
+
         fig = plt.figure(figsize=(12, 12))
         ax = fig.add_subplot(111)
         n_targets = self.dataset.n_targets
+
+        # Plot the first target at the top and work down
         pos = range(-1, -n_targets-1, -1)
         pos = [0.55*p for p in pos]
         for target_label, p in zip(self.dataset.target_labels, pos):
             self.plot_rate_distribution(target_label, ax, pos=p,
                                         samples=samples)
 
+        # Set the titles and tick labels
         ax.set_title('Predicted Mean Graduation Rates')
         ax.set_xlabel('Graduation Rate (%)')
         ax.set_yticks(pos)
         ax.set_yticklabels([la for la in self.dataset.target_labels])
+
+        # Only display the actual value once in the legend
         handles, labels = ax.get_legend_handles_labels()
         ax.legend([handles[0]], [labels[0]], loc='lower left')
 
     def calc_predict_distribution(self, X, target, samples=500):
+        '''
+        Calculates the distribution of predicted target values by sampling
+        its trace of coefficients, then multiplying by a given observation.
 
+            X - a numpy array containing feature values in an observation
+            target - the target name (from the trace's varnames)
+            samples - number of traces to sample
+        '''
         # Add an intercept term to the observation
         test_obs = X.copy()
         test_obs = np.insert(test_obs, 0, 1)
@@ -241,18 +346,29 @@ class McmcRegressor(Regressor):
         return np.dot(var_weights, test_obs)
 
     def plot_predict_distributions(self, X, Y_actual):
+        '''
+        Plots the distribution of each target in the dataset as a histogram.
+        Each target is a separate histogram.
 
+            X - a numpy array containing feature values in an observation
+            Y_actual - numpy array containing actual values for each target
+        '''
         fig, ax = plt.subplots(4, 2, figsize=(12, 16))
 
         for i, target in enumerate(mcmc.dataset.target_labels):
 
+            # Calculate the predicted values
             y_preds = self.calc_predict_distribution(X, target)
 
+            # Plot the histogram
             axi = ax[i // 2, i % 2]
             axi.hist(y_preds, bins=20, density=True, alpha=0.8,
                      color=mcmc.dataset.target_colors[target])
+
+            # Plot a vertical line for the actual observed target
             axi.axvline(Y_actual[i], color='black',
                         linestyle='--', label='Actual')
+
             axi.set_title(target)
             axi.set_xlabel('Graduation Rate (%)')
             axi.set_ylabel('Probability Density')
@@ -343,7 +459,7 @@ if __name__ == "__main__":
         plt.tight_layout()
         plt.savefig(filepath)
 
-    if writetodb: 
+    if writetodb:
 
         # Create dataframe to write test results to database
         model_dict = {'unitid': mdf.loc[ds.idx_test, 'unitid'].values}

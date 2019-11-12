@@ -35,21 +35,19 @@ if __name__ == "__main__":
                             'cstcball_pct_grwhitt', 'pgcmbac_pct',
                             'sscmbac_pct', 'nrcmbac_pct'])
 
+    # Create a dataset from the pandas Dataframe
     ds = Dataset.from_df(mdf, feat_cols, target_cols, test_size=0.25,
                          random_state=10)
     ds.target_labels = ['2+ Races', 'Asian', 'Black', 'Hispanic', 'White',
                         'Pell Grant', 'SSL', 'Non-Recipient']
     ds.target_colors = targets_color_dict()
 
-    model = MultiTaskLassoCV(cv=5, fit_intercept=False, n_jobs=-1)
-    lr = LinearRegressor(model, ds)
-
     # transform some features
-    tr_feature_dict = {'enrlt_pct': ('log_enrlt_pct', lr.log10_sm),
-                       'grntwf2_pct': ('log_grntwf2_pct', lr.log10_sm),
-                       'grntof2_pct': ('log_grntof2_pct', lr.log10_sm),
-                       'uagrntp': ('logu_uagrntp', lr.log10u_sm),
-                       'enrlft_pct': ('logu_enrlft_pct', lr.log10u_sm)}
+    tr_feature_dict = {'enrlt_pct': ('log_enrlt_pct', ds.log10_sm),
+                       'grntwf2_pct': ('log_grntwf2_pct', ds.log10_sm),
+                       'grntof2_pct': ('log_grntof2_pct', ds.log10_sm),
+                       'uagrntp': ('logu_uagrntp', ds.log10u_sm),
+                       'enrlft_pct': ('logu_enrlft_pct', ds.log10u_sm)}
     ds.transform_features(tr_feature_dict, drop_old=False)
 
     # Plot histograms of transformed features
@@ -74,12 +72,16 @@ if __name__ == "__main__":
     ds.drop_features(features)
     ds.scale_features_targets()
 
+    # Instantiate a linear regression model
+    model = MultiTaskLassoCV(cv=5, fit_intercept=False, n_jobs=-1)
+    lr = LinearRegressor(model, ds)
+
     # Perform fitting and predicting
     lr.fit_train()
     lr.predict()
 
     # Use joblib to save the model
-    dump(lr.model, 'models/lassoreg.joblib') 
+    dump(lr.model, 'models/lassoreg.joblib')
 
     # Make histograms of the residuals
     lr.plot_residuals()
@@ -115,7 +117,7 @@ if __name__ == "__main__":
                    'upgrntp': '% Receiving Pell Grant',
                    'log_grntof2_pct': 'Log(% Off Campus)',
                    'logu_uagrntp': 'Log(101 - % Receiving Any Aid)'}
-    lr.plot_coeffs_heatmap(normalized=False, min_coeff=0.5, clim=(-3, 3), 
+    lr.plot_coeffs_heatmap(normalized=False, min_coeff=0.5, clim=(-3, 3),
                            labels_dict=labels_dict)
     plt.show()
 
