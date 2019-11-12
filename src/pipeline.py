@@ -5,10 +5,10 @@ sys.path.append('/home/fberendse/git/galvanize/work/capstone_1/src/')
 from imputationtypes import ImputationTypes as it
 from cohorttypes import CohortTypes as ct
 from ipedscollection import IpedsCollection
-from sklearn.preprocessing import StandardScaler 
+from sklearn.preprocessing import StandardScaler
 
 
-def grad_make_pcts(df, class_sum, classes, dropna=False, 
+def grad_make_pcts(df, class_sum, classes, dropna=False,
                    replace=False, alpha=0):
     '''
     Computes percentages for the graduation rates columns.
@@ -279,7 +279,7 @@ if __name__ == "__main__":
     tc.merged_table.df.set_index('unitid', inplace=True)
     tc.merged_table.write_csv('data/ipeds_2017_cats.csv')
 
-    if writetodb: 
+    if writetodb:
         # Write to PostgreSQL database
         print("Connecting to database")
         ratesdb = Database(local=False)
