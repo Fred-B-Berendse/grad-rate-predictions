@@ -348,10 +348,27 @@ Feature importances do not determine the direction of influence a given feature 
 ![img/rf-part-dep-pgs.png](img/rf-part-dep-pgs.png)
 *Partial dependence plots of the top four features for Pell Grant, SSL, and non-recipient groups.*
 
+### Markov Chain Monte Carlo (MCMC) Regression
+Describe the MCMC model and its hyperparameters
+
+Coefficients and their interpretation
+
+Posterior graduation rates across all institutions
+
+An example prediction for a given institution showing systemic over- or under-prediction.
+
+### Model Comparison
+The performance of the four models can be directly compared by calculating the R<sup>2</sup> statistic, *i.e.* the proportion of variance explained by the model, and the root-mean-squared error of the model. 
+
+*SHOW TABLE HERE*
+
+All four of the models show relatively comparable performance for each racial/financial aid group. The random forest model holds a slight edge in performance across all groups.
+
 ## Conclusions and Further Work
-Institutional features of 682 institutions in the IPEDS database were modeled with ordinary least-squares linear regression, a Lasso regularized linear regression model, and a random forest model. All of the models have an R<sup>2</sup> value of 0.4-0.6 on a test holdout data set.
+Institutional features of 682 institutions in the IPEDS database were modeled with ordinary least-squares linear regression, a Lasso regularized linear regression model, a random forest model, and a Markov chain Monte Carlo model. All four models have very similar values of R<sup>2</sup> and root-mean-squared error (RMSE) for a given racial or financial aid group. Across the different groups, values of R<sup>2</sup> varied from 0.4 (whites) to 0.6 (Hispanics). The RMSE values ranged from 9.4% (whites) to 18.4% (Hispanics).
 
-All three models agree that the two most influential predictors of graduation rates are SAT/ACT benchmark scores and the percentage of students who receive a Pell Grant. The former has a positive correlation with graduation rate while the latter has a negative correlation. All three models also show that the graduation rate of one race/ethnicity at a given institution is highly correlated with graduation rates of other races/ethnicities. A similar high correlation exists between Pell Grant/Subsidized Student Loan status groups. 
+All four models agree that the most influential predictors of graduation rates are SAT/ACT benchmark scores. (Only the English 25th percentile was used because these benchmark scores are highly correlated with each other.) Three of the models (linear regression, linear regression with Lasso regularization, and random forest) also list the percentage of students receiving a Pell Grant as an important predictor as well. All three models also show that the graduation rate of one race/ethnicity at a given institution is highly correlated with graduation rates of other races/ethnicities. A similar high correlation exists between Pell Grant/Subsidized Student Loan status groups. 
 
-There is an abundance of data about institutions in the IPEDS database that were not examined in this analysis. It would be interesting to see if adding additional data such as the institutions locale (urban vs rural) or data about the types of degrees granted at a given institution can improve model predictions.
+Many institutions in the test dataset systematically over- or under-predict graduation rates across all racial and financial aid groups across all models. This suggests that metrics of student services may need to be added to the models. However, no such metrics exist in the IPEDS dataset. 
 
+A possible missing feature that can be extracted from the IPEDS dataset is the percentage of bachelors degrees awarded in various fields. It may be possible that certain types of degrees have higher graduation rates. An instiution that graduates a significantly different percentage of its students in these fields may explain the observed systematic over-/under-prediction for that institution. 
