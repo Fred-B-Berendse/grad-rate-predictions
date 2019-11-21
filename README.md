@@ -360,7 +360,31 @@ An example prediction for a given institution showing systemic over- or under-pr
 ### Model Comparison
 The performance of the four models can be directly compared by calculating the R<sup>2</sup> statistic, *i.e.* the proportion of variance explained by the model, and the root-mean-squared error of the model. 
 
-*SHOW TABLE HERE*
+| Target | OLS | OLS w/Lasso | Random Forest | MCMC |
+|--------|-----|--------|-------------|----------|
+| 2+ Races | | | | |
+| Asian | | | | |
+| Black | | | | |
+| Hispanic | | | | |
+| White | | | | |
+| Pell Grant | | | | |
+| SSL | | | | |
+| Non-recipient | | | | |
+||||||
+*R<sup>2</sup> statistic for the four models across all racial and financial aid groups.*
+
+| Target | OLS | OLS w/Lasso | Random Forest | MCMC |
+|--------|-----|--------|-------------|----------|
+| 2+ Races | | 15.5% | 14.9% | 15.1% |
+| Asian | | 16.2% | 15.5% | 15.7% |
+| Black | | 15.9% | 16.0% | 16.4% |
+| Hispanic | | 18.4% | 17.1% | 17.4% |
+| White | | 9.4% | 9.5% | 9.7% |
+| Pell Grant | | 11.6% | 11.3% | 11.4% |
+| SSL | | 14.8% | 14.7% | 14.9% |
+| Non-recipient | | 13.9% | 14.1% | 14.2% |
+||||||
+*Root-mean-squared error for the four models across all racial and financial aid groups.*
 
 All four of the models show relatively comparable performance for each racial/financial aid group. The random forest model holds a slight edge in performance across all groups.
 
