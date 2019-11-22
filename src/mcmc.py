@@ -462,9 +462,10 @@ if __name__ == "__main__":
             plt.tight_layout()
             plt.savefig(filepath)
 
-    # Create dataframe to write test results to database
+    # Write predictions to the database
     if writetodb:
 
+        # Create dataframe to write test results to database
         model_dict = {'unitid': mdf.loc[ds.idx_test, 'unitid'].values}
         for j, target in enumerate(ds.target_labels):
             trg = ds.validname(target)
