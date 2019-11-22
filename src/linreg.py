@@ -95,8 +95,7 @@ class LinearRegressor(Regressor):
 
 if __name__ == "__main__":
 
-    mdf = pd.read_csv('data/ipeds_2017_cats_eda.csv')
-    mdf.drop(['Unnamed: 0', 'applcn'], axis=1, inplace=True)
+    mdf = pd.read_csv('data/ipeds_2017_cats.csv')
 
     # Surviving features after VIF elimination
     feat_cols = np.array(['control_privnp', 'hloffer_postmc', 'hloffer_postbc',
