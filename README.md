@@ -349,19 +349,29 @@ Feature importances do not determine the direction of influence a given feature 
 *Partial dependence plots of the top four features for Pell Grant, SSL, and non-recipient groups.*
 
 ### Markov Chain Monte Carlo Regression
-Describe the MCMC model and its hyperparameters
 
-Finally, the data were fitted to a Markov Chain Monte Carlo (MCMC) regression model. According to Bayes' theorem, the product of the prior and the likelihood, divided by the marginal probability, gives the posterior probability distribution of coefficients. MCMC regression aims to find the set of coefficients that maximize this posterior.
+Finally, the data were fitted to a Markov Chain Monte Carlo (MCMC) regression model. The Generalized Linear Model (GLM) of the [PyMC3 library](https://pymc3.readthedocs.io/en/latest/) was used to build the MCMC model. This model initializes the coefficients by estimating a frequentist linear model with `statsmodels`, then utilizes a No-U-Turn Sampling (NUTS) algorithm to step between successive states in the Markov Chain. ([The Inference Button: Bayesian GLMs made easy with PyMC3](https://twiecki.io/blog/2013/08/12/bayesian-glms-1/)). Four Markov chains of 2000 iterations with a burn-in of 500 iterations were generated for each target group. All of the traces obtained a Gelman-Rubin statistic near 1.00 which implies that each chain converged to similar parameter values.
 
-There are two significant challenges to calculating the posterior distribution. Analytically calculating the marginal distribution is difficult, if not impossible because it involves integrating over all possible combinations of coefficients. Thankfully, this marginal probability is independent of the coefficients. Since one is interested in finding the maximum posterior probability, the marginal probability can be ignored. The product of the prior probability distribution and the likelihood can be maximized instead. 
+A unique advantage of MCMC models is their ability to return a probability distribution rather than a single coefficient representing the maximum likelihood. 
 
-The second challenge is to sample all of parameter space to find this maximum product. The MCMC model starts with an initial prior probability distribution for each coefficient. It calculates the likelihood that these coefficients would generate the observed data. Next, the model samples from each prior to generate a new set of coefficients and calculates another likelihood. It then decides whether to keep or reject the new coefficients based on how it improves the product of prior times likelihood. If it keeps the new coefficients, a new prior probability distribution calculated for each coefficient.
+|  |  |
+|:-------------------------:|:-------------------------:|
+| ![img/mcmc-coeffs-white.png](img/mcmc-coeffs-white.png) |  ![img/mcmc-coeffs-black.png](img/mcmc-coeffs-black.png) |
+| ![img/mcmc-coeffs-hisp.png](img/mcmc-coeffs-hisp.png) |  ![img/mcmc-coeffs-asian.png](img/mcmc-coeffs-asian.png) |
+ ![img/mcmc-coeffs-2plus.png](img/mcmc-coeffs-2plus.png) |
+ ||| 
+*Probability distributions of coefficients for each racial group derived from the MCMC model.*
 
-Repeatedly using samples of the prior probability distribution is the Monte Carlo part of the model. Jumping from one set of coefficients, *i.e.* a state, to another state in a probabilistic manner forms a Markov chain. Because one uses an algorithm that choses to favor steps toward larger values of prior times likelihood, the Markov chain will generally step toward the set of coefficients that maximize this product. Once near the maximum posterior probability, the chain will perform a near-random walk around this portion of parameter spaces, resulting in numerous samples of coefficients near this maximum. Sampling coefficient space near this maximum gives the MCMC model one of its distinct advantages: obtaining a sample of the posterior probability distribution of each coefficient without assumptions about the shape of that distribution.
+|  |  |
+|:-------------------------:|:-------------------------:|
+| ![img/mcmc-coeffs-pell.png](img/mcmc-coeffs-pell.png) |  ![img/mcmc-coeffs-ssl.png](img/mcmc-coeffs-ssl.png) |
+| ![img/mcmc-coeffs-nonrec.png](img/mcmc-coeffs-nonrec.png) | |
+ ||| 
+*Probability distributions of coefficients for each financial aid group derived from the MCMC model.*
 
-The Generalized Linear Model (GLM) of the [PyMC3 library](https://pymc3.readthedocs.io/en/latest/) was used to build the MCMC model.   
+As with the other models, the scaled ACT/SAT English 25th percentile (en25) is positively correlated with graduation rates in all target groups. Surprisingly, the coefficient for the percentage of students receiving a Pell Grant (upgrntp) is zero, whereas it was negative for other models. 
 
-Coefficients and their interpretation
+There are other correlations implied by the MCMC model that are not present in the other models. Graduation rates are negatively correlated with the log of the percentage of students who live off campus (`log_grntof2_pct`). The coefficient of the feature `logu_uagrntp` (*i.e.* the log of 101 minus the percentage of students receiving any financial aid) is negative. This implies that graduation rates increase when *more* students receive financial aid. This seems to contradict the other models that found that the percentage of students receiving Pell Grants reduces graduation rates. Perhaps this apparent contradiction is resolved by noting that other sources of financial aid can be non-need based, *e.g.* merit-based scholarships.  
 
 Posterior graduation rates across all institutions
 
