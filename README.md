@@ -348,8 +348,18 @@ Feature importances do not determine the direction of influence a given feature 
 ![img/rf-part-dep-pgs.png](img/rf-part-dep-pgs.png)
 *Partial dependence plots of the top four features for Pell Grant, SSL, and non-recipient groups.*
 
-### Markov Chain Monte Carlo (MCMC) Regression
+### Markov Chain Monte Carlo Regression
 Describe the MCMC model and its hyperparameters
+
+Finally, the data were fitted to a Markov Chain Monte Carlo (MCMC) regression model. According to Bayes' theorem, the product of the prior and the likelihood, divided by the marginal probability, gives the posterior probability distribution of coefficients. MCMC regression aims to find the set of coefficients that maximize this posterior.
+
+There are two significant challenges to calculating the posterior distribution. Analytically calculating the marginal distribution is difficult, if not impossible because it involves integrating over all possible combinations of coefficients. Thankfully, this marginal probability is independent of the coefficients. Since one is interested in finding the maximum posterior probability, the marginal probability can be ignored. The product of the prior probability distribution and the likelihood can be maximized instead. 
+
+The second challenge is to sample all of parameter space to find this maximum product. The MCMC model starts with an initial prior probability distribution for each coefficient. It calculates the likelihood that these coefficients would generate the observed data. Next, the model samples from each prior to generate a new set of coefficients and calculates another likelihood. It then decides whether to keep or reject the new coefficients based on how it improves the product of prior times likelihood. If it keeps the new coefficients, a new prior probability distribution calculated for each coefficient.
+
+Repeatedly using samples of the prior probability distribution is the Monte Carlo part of the model. Jumping from one set of coefficients, *i.e.* a state, to another state in a probabilistic manner forms a Markov chain. Because one uses an algorithm that choses to favor steps toward larger values of prior times likelihood, the Markov chain will generally step toward the set of coefficients that maximize this product. Once near the maximum posterior probability, the chain will perform a near-random walk around this portion of parameter spaces, resulting in numerous samples of coefficients near this maximum. Sampling coefficient space near this maximum gives the MCMC model one of its distinct advantages: obtaining a sample of the posterior probability distribution of each coefficient without assumptions about the shape of that distribution.
+
+The Generalized Linear Model (GLM) of the [PyMC3 library](https://pymc3.readthedocs.io/en/latest/) was used to build the MCMC model.   
 
 Coefficients and their interpretation
 
