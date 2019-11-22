@@ -358,38 +358,38 @@ Posterior graduation rates across all institutions
 An example prediction for a given institution showing systemic over- or under-prediction.
 
 ### Model Comparison
-The performance of the four models can be directly compared by calculating the R<sup>2</sup> statistic, *i.e.* the proportion of variance explained by the model, and the root-mean-squared error of the model. 
+The performance of the four models can be directly compared by calculating the R<sup>2</sup> statistic and the root-mean-squared error of the model. 
 
 | Target | OLS | OLS w/Lasso | Random Forest | MCMC |
 |--------|-----|--------|-------------|----------|
-| 2+ Races | | | | |
-| Asian | | | | |
-| Black | | | | |
-| Hispanic | | | | |
-| White | | | | |
-| Pell Grant | | | | |
-| SSL | | | | |
-| Non-recipient | | | | |
+| 2+ Races | 0.44 | 0.49 | 0.51 | 0.47 |
+| Asian | 0.46 | 0.50 | 0.51 | 0.49 |
+| Black | 0.54 | 0.54 | 0.62 | 0.51 |
+| Hispanic | 0.30 | 0.39 | 0.40 | 0.37 |
+| White | 0.72 | 0.72 | 0.72 | 0.71 |
+| Pell Grant | 0.66 | 0.68 | 0.69 | 0.67 |
+| SSL | 0.41 | 0.41 | 0.43 | 0.40 |
+| Non-recipient | 0.47 | 0.46 | 0.43 | 0.45 |
 ||||||
 *R<sup>2</sup> statistic for the four models across all racial and financial aid groups.*
 
 | Target | OLS | OLS w/Lasso | Random Forest | MCMC |
 |--------|-----|--------|-------------|----------|
-| 2+ Races | | 15.5% | 14.9% | 15.1% |
-| Asian | | 16.2% | 15.5% | 15.7% |
-| Black | | 15.9% | 16.0% | 16.4% |
-| Hispanic | | 18.4% | 17.1% | 17.4% |
-| White | | 9.4% | 9.5% | 9.7% |
-| Pell Grant | | 11.6% | 11.3% | 11.4% |
-| SSL | | 14.8% | 14.7% | 14.9% |
-| Non-recipient | | 13.9% | 14.1% | 14.2% |
+| 2+ Races | 15.5% | 14.9% | 14.6% | 15.1% |
+| Asian | 16.2% | 15.5% | 15.4% | 15.7% |
+| Black | 15.9% | 16.0% | 14.9% | 16.4% |
+| Hispanic | 18.4% | 17.1% | 17.0% | 17.4% |
+| White | 9.4% | 9.5% | 9.4% | 9.7% |
+| Pell Grant | 11.6% | 11.3% | 11.0% | 11.4% |
+| SSL | 14.8% | 14.7% | 14.5% | 14.9% |
+| Non-recipient | 13.9% | 14.2% | 14.5% | 14.2% |
 ||||||
 *Root-mean-squared error for the four models across all racial and financial aid groups.*
 
-All four of the models show relatively comparable performance for each racial/financial aid group. The random forest model holds a slight edge in performance across all groups.
+All four of the models show relatively comparable performance for each racial/financial aid group. The random forest model holds a very slight edge in performance across all groups except those not receiving federal financial aid.
 
 ## Conclusions and Further Work
-Institutional features of 682 institutions in the IPEDS database were modeled with ordinary least-squares linear regression, a Lasso regularized linear regression model, a random forest model, and a Markov chain Monte Carlo model. All four models have very similar values of R<sup>2</sup> and root-mean-squared error (RMSE) for a given racial or financial aid group. Across the different groups, values of R<sup>2</sup> varied from 0.4 (whites) to 0.6 (Hispanics). The RMSE values ranged from 9.4% (whites) to 18.4% (Hispanics).
+Institutional features of 682 institutions in the IPEDS database were modeled with ordinary least-squares linear regression, a Lasso regularized linear regression model, a random forest model, and a Markov chain Monte Carlo model. All four models have very similar values of R<sup>2</sup> and root-mean-squared error (RMSE) for a given racial or financial aid group. Across the different groups, values of R<sup>2</sup> varied from 0.44 (Hispanics) to 0.6 (whites). The RMSE values ranged from 9.4% (whites) to 18.4% (Hispanics).
 
 All four models agree that the most influential predictors of graduation rates are SAT/ACT benchmark scores. (Only the English 25th percentile was used because these benchmark scores are highly correlated with each other.) Three of the models (linear regression, linear regression with Lasso regularization, and random forest) also list the percentage of students receiving a Pell Grant as an important predictor as well. All three models also show that the graduation rate of one race/ethnicity at a given institution is highly correlated with graduation rates of other races/ethnicities. A similar high correlation exists between Pell Grant/Subsidized Student Loan status groups. 
 
