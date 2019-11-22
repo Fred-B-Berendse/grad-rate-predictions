@@ -378,7 +378,8 @@ class McmcRegressor(Regressor):
 if __name__ == "__main__":
 
     build_model = False
-    writetodb = True
+    writetodb = False
+    make_prediction_plots = False
 
     mdf = pd.read_csv('data/ipeds_2017_cats.csv')
 
@@ -446,18 +447,20 @@ if __name__ == "__main__":
     mcmc.plot_rate_distributions(samples=500)
     plt.show()
 
-    # Graph predictions for a member of the test dataset
-    unitid = mdf['unitid']
-    for i, idx in enumerate(ds.idx_test):
-        print("Generating image {} of {}".format(i+1, len(ds.idx_test)))
-        print("  unitid: {}".format(unitid[idx]))
-        filepath = 'web-app/static/images/' + str(unitid[idx]) + '.png'
-        print("  filepath: {}".format(filepath))
-        Y_actual = mcmc.dataset.Y_test[i]
-        X = mcmc.dataset.X_test[i]
-        mcmc.plot_predict_distributions(X, Y_actual)
-        plt.tight_layout()
-        plt.savefig(filepath)
+    # Graph predictions for each member of the test dataset
+    if make_prediction_plots:
+
+        unitid = mdf['unitid']
+        for i, idx in enumerate(ds.idx_test):
+            print("Generating image {} of {}".format(i+1, len(ds.idx_test)))
+            print("  unitid: {}".format(unitid[idx]))
+            filepath = 'web-app/static/images/' + str(unitid[idx]) + '.png'
+            print("  filepath: {}".format(filepath))
+            Y_actual = mcmc.dataset.Y_test[i]
+            X = mcmc.dataset.X_test[i]
+            mcmc.plot_predict_distributions(X, Y_actual)
+            plt.tight_layout()
+            plt.savefig(filepath)
 
     if writetodb:
 
