@@ -186,18 +186,20 @@ if __name__ == "__main__":
     plt.show()
 
     # Plot partial dependence for top features
-    desc_dict = {'en25': 'English 25th Percentile',
-                 'upgrntp': 'Percent Receiving Pell Grant',
-                 'admssn_pct': 'Percent of Applicants Admitted',
-                 'grntwf2_pct': 'Percent Living with Family'}
+    x_label_dict = {'en25': 'English 25th Percentile',
+                    'upgrntp': 'Percent Receiving Pell Grant',
+                    'admssn_pct': 'Percent of Applicants Admitted',
+                    'grntwf2_pct': 'Percent Living with Family'}
 
     top_features = ['en25', 'upgrntp', 'admssn_pct', 'grntwf2_pct']
     targets = ['2+ Races', 'Asian', 'Black', 'Hispanic', 'White']
-    rfbest.plot_partial_dependences(top_features, targets, desc_dict=desc_dict)
+    rfbest.plot_partial_dependences(top_features, targets,
+                                    x_label_dict=x_label_dict)
     plt.show()
 
     targets = ['Pell Grant', 'SSL', 'Non-Recipient']
-    rfbest.plot_partial_dependences(top_features, targets, desc_dict=desc_dict)
+    rfbest.plot_partial_dependences(top_features, targets,
+                                    x_label_dict=x_label_dict)
     plt.show()
 
     if writetodb:
