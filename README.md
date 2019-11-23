@@ -382,9 +382,14 @@ Sampling the posterior probability distribution gives a distribution of graduati
  ||| 
 *Distribution of graduation rates predicted by the MCMC model for four institutions in the test set.*
 
-As is the case for many institutions in the test set, the model systematically over- or under-predicts graduation rates. This implies that the model is underfitting the data and that additional features are needed to fully explain an institution's graduation rates. In general, institutions with higher graduation rates tended to be fit better by the model than institutions with low graduation rates.
+As is the case for many institutions in the test set, the model systematically over- or under-predicts graduation rates. This implies that the model is underfitting the data and that additional features are needed to fully explain an institution's graduation rates. Only institutions with very high graduation rates (*e.g.* above 90%) tended to be well fit by the model.
 
-*** Mean graduation rates across all test institutions ***
+To determine if there is a systemic over- or under-fitting across all institutions, 500 sets of coefficients were sampled from the Markov chain trace. Each set of coefficients was used to calculate a predicted graduation rate for each institution in the test set, then these predictions were averaged to obtain a mean graduation rate. The distribution of these predictions is compared to the actual mean graduation rate across all institutions in the test set. 
+
+![img/mcmc-mean-rate.png](img/mcmc-mean-rate.png)
+*Distribution of predicted graduation rates averaged across all institutions in the test set. The actual mean graduation rate for the test set is also shown.*
+
+Five of the distributions of predicted mean graduation rate encapsulate the actual mean graduation rate as one would expect. However, the models for students with two or more races, Hispanics, and SSL students all underestimate the actual mean graduation rate signficiantly. It should also be noted that only two of the eight targets have an actual mean graduation rate lower than the peak of the distribution of predicted mean rates. There is a 14.4% chance that a random sample of eight distributions would have two or fewer actual rates lower than its peak predicted rate - not quite low enough to be statistically significant at a $\alpha$ = 0.05 level. 
 
 ### Model Comparison
 The performance of the four models can be directly compared by calculating the R<sup>2</sup> statistic and the root-mean-squared error of the model. 
