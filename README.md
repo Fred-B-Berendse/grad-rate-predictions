@@ -373,9 +373,18 @@ As with the other models, the scaled ACT/SAT English 25th percentile (en25) is p
 
 There are other correlations implied by the MCMC model that are not present in the other models. Graduation rates are negatively correlated with the log of the percentage of students who live off campus (`log_grntof2_pct`). The coefficient of the feature `logu_uagrntp` (*i.e.* the log of 101 minus the percentage of students receiving any financial aid) is negative. This implies that graduation rates increase when *more* students receive financial aid. This seems to contradict the other models that found that the percentage of students receiving Pell Grants reduces graduation rates. Perhaps this apparent contradiction is resolved by noting that other sources of financial aid can be non-need based, *e.g.* merit-based scholarships.  
 
-Posterior graduation rates across all institutions
+Sampling the posterior probability distribution gives a distribution of graduation rates rather than a single maximum likelihood value and confidence interval. Below is an example of a distribution of possible graduation rates according to the MCMC regression model for an instiution in the test set. 
 
-An example prediction for a given institution showing systemic over- or under-prediction.
+|  |  |
+|:-------------------------:|:-------------------------:|
+| ![img/mcmc-inst-gradrate-1.png](img/mcmc-inst-gradrate-1.png) |  ![img/mcmc-inst_gradrate-2.png](img/mcmc-inst-gradrate-2.png) |
+| ![img/mcmc-inst-gradrate-3.png](img/mcmc-inst-gradrate-3.png) |  ![img/mcmc-inst_gradrate-4.png](img/mcmc-inst-gradrate-4.png) |
+ ||| 
+*Distribution of graduation rates predicted by the MCMC model for four institutions in the test set.*
+
+As is the case for many institutions in the test set, the model systematically over- or under-predicts graduation rates. This implies that the model is underfitting the data and that additional features are needed to fully explain an institution's graduation rates. In general, institutions with higher graduation rates tended to be fit better by the model than institutions with low graduation rates.
+
+*** Mean graduation rates across all test institutions ***
 
 ### Model Comparison
 The performance of the four models can be directly compared by calculating the R<sup>2</sup> statistic and the root-mean-squared error of the model. 
