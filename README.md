@@ -276,7 +276,7 @@ In an attempt to limit the number of features, normalized targets and features w
 When the model was run on the training set, only 13 iterations were necessary to find that the best value of $\alpha$ was around 0.08. Below are the best-fit values of $\alpha$, as well as R<sup>2</sup> and RMSE for each target. Residuals and coefficients for each model are very similar to the ordinary regression model.
 
 | Target | Train R<sup>2</sup> | Test R<sup>2</sup> | Test RMSE |
-|--------|------|----------|---------|-----|
+|--------|------|----------|---------|
 | 2 or More Races | 0.57 | 0.49 | 14.9 |
 | Asian | 0.49 | 0.50 | 15.5 |
 | Black | 0.62 | 0.54 | 16.0 |
