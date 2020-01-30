@@ -380,6 +380,7 @@ Sampling the posterior probability distribution gives a distribution of graduati
 | ![img/mcmc-inst-gradrate-1.png](img/mcmc-inst-gradrate-1.png) |  ![img/mcmc-inst_gradrate-2.png](img/mcmc-inst-gradrate-2.png) |
 | ![img/mcmc-inst-gradrate-3.png](img/mcmc-inst-gradrate-3.png) |  ![img/mcmc-inst_gradrate-4.png](img/mcmc-inst-gradrate-4.png) |
  ||| 
+ 
 *Distribution of graduation rates predicted by the MCMC model for four institutions in the test set.*
 
 As is the case for many institutions in the test set, the model systematically over- or under-predicts graduation rates. This implies that the model is underfitting the data and that additional features are needed to fully explain an institution's graduation rates. Only institutions with very high graduation rates (*e.g.* above 90%) tended to be well fit by the model. 
