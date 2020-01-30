@@ -330,7 +330,7 @@ These rankings were consistent across all target demographics.
 | ![img/rf-feat-imp-2plus.png](img/rf-feat-imp-2plus.png) |  ![img/rf-feat-imp-asian.png](img/rf-feat-imp-asian.png) |
 | ![img/rf-feat-imp-black.png](img/rf-feat-imp-black.png) |  ![img/rf-feat-imp-hisp.png](img/rf-feat-imp-hisp.png) |
 | ![img/rf-feat-imp-white.png](img/rf-feat-imp-white.png) |  |
-|||
+
 *Feature importance plots for all racial/ethnic demographics.*
 
 |  |  |
