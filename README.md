@@ -96,7 +96,7 @@ Once these three key issues were resolved, the pipeline produces the following n
 | GR2017            | 54714 (49981) | 54714 (49981) | 4203 (4203) | 2139 (2064) | 2139 (2123) |
 | GR2017_PELL_SSL   | 9116 (5557)   | 9116 (5557)   | 2139 (2139)   | 2139 (2139) | 2139 (2139) |
 | SFA2017           | 6394 (0)      | 6394 (1184)   | 6394 (1184)   | 6394 (1184) | 4029 (4029) |
-|||||||
+
 *Finalized pipeline. The number in parentheses is the number of full (non-NaN) rows.*
 
 The final step in the pipeline is to merge all of the tables by an institution's unitid then drop rows containing any NaN values. The merged table contains 682 institutions available for modeling. 
@@ -142,7 +142,7 @@ Below is a series of scatterplot maps of each institution along the two most imp
 | ![img/pca-white-grad.png](img/pca-white-grad.png) |  ![img/pca-black-grad.png](img/pca-black-grad.png) |
 | ![img/pca-hispanic-grad.png](img/pca-hispanic-grad.png) |  ![img/pca-asian-grad.png](img/pca-asian-grad.png) |
  ![img/pca-2plus-grad.png](img/pca-2plus-grad.png) |
- ||| 
+
  *Principal Component Analysis (PCA) maps of graduation rates by race*
 
 
@@ -150,7 +150,7 @@ Below is a series of scatterplot maps of each institution along the two most imp
 |:-------------------------:|:-------------------------:|
 | ![img/pca-pell-grad.png](img/pca-pell-grad.png) |  ![img/pca-ssl-grad.png](img/pca-ssl-grad.png) |
 | ![img/pca-nonrecipient-grad.png](img/pca-nonrecipient-grad.png) ||
-|||
+
 *Principal Component Analysis (PCA) maps of graduation rates by Pell/SSL status*
 
 
@@ -161,7 +161,7 @@ When graduation rates of different races or grant/loan status are used as labels
 | ![img/pca-white-grad.png](img/pca-white-grad.png) |  ![img/pca-white-grad-nosm.png](img/pca-white-grad-nosm.png) |
 | ![img/pca-2plus-grad.png](img/pca-2plus-grad.png) |  ![img/pca-2plus-grad-nosm.png](img/pca-2plus-grad-nosm.png)|
 | ![img/pca-asian-grad.png](img/pca-asian-grad.png) |  ![img/pca-asian-grad-nosm.png](img/pca-asian-grad-nosm.png)|
-|||
+
 *Principal Component Analysis (PCA) maps with and without Laplace smoothing*
 
 It makes sense that these two minority categories would be affected by smoothing since they have smaller counts than other race categories. 
@@ -319,7 +319,7 @@ Both the baseline and best random forest models yield values of R<sup>2</sup> co
 | Pell Grant | 0.694 (0.681) | 10.95 (11.17) |
 | SSL | 0.433 (0.332) | 14.46 (15.69) |
 | Non-Recipient | 0.428 (0.446) | 14.45 (14.22) |
-||||
+
 *Performance metrics of the best random forest model selected by CV. Metrics of the baseline model are in parentheses.*
 
 The best random forest model shows that the two most important features are the average normalized SAT/ACT English 25th percentile benchmark and the percentage of students who received a Pell Grant - consistent with the PCA analysis and regression models. The third most important feature identified by this model is the percent of applicants admitted to the institution, not the latitude of the institution as was identified by the regression models. 
@@ -359,7 +359,7 @@ A unique advantage of MCMC models is their ability to return a probability distr
 | ![img/mcmc-coeffs-white.png](img/mcmc-coeffs-white.png) |  ![img/mcmc-coeffs-black.png](img/mcmc-coeffs-black.png) |
 | ![img/mcmc-coeffs-hisp.png](img/mcmc-coeffs-hisp.png) |  ![img/mcmc-coeffs-asian.png](img/mcmc-coeffs-asian.png) |
  ![img/mcmc-coeffs-2plus.png](img/mcmc-coeffs-2plus.png) |
- ||| 
+
 *Probability distributions of coefficients for each racial group derived from the MCMC model.*
 
 |  |  |
