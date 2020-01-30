@@ -337,7 +337,7 @@ These rankings were consistent across all target demographics.
 |:-------------------------:|:-------------------------:|
 | ![img/rf-feat-imp-pell.png](img/rf-feat-imp-pell.png) |  ![img/rf-feat-imp-ssl.png](img/rf-feat-imp-ssl.png) |
 | ![img/rf-feat-imp-nonrec.png](img/rf-feat-imp-nonrec.png) |  |
-|||
+
 *Feature importance plots for Pell Grant, SSL, and non-recipient demographics.*
 
 Feature importances do not determine the direction of influence a given feature has upon graduation rates. The influence of each of the top four features is shown. All demographics are impacted very similarly by English 25th percentile benchmark and percentage of students receiving a Pell Grant. There is some variation in the impact of admission percentage between demographics, but this has less than a 5% impact on graduation rate. 
@@ -366,7 +366,7 @@ A unique advantage of MCMC models is their ability to return a probability distr
 |:-------------------------:|:-------------------------:|
 | ![img/mcmc-coeffs-pell.png](img/mcmc-coeffs-pell.png) |  ![img/mcmc-coeffs-ssl.png](img/mcmc-coeffs-ssl.png) |
 | ![img/mcmc-coeffs-nonrec.png](img/mcmc-coeffs-nonrec.png) | |
- ||| 
+
 *Probability distributions of coefficients for each financial aid group derived from the MCMC model.*
 
 As with the other models, the scaled ACT/SAT English 25th percentile (en25) is positively correlated with graduation rates in all target groups. Surprisingly, the coefficient for the percentage of students receiving a Pell Grant (upgrntp) is zero, whereas it was negative for other models. 
